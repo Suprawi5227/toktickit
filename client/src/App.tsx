@@ -34,6 +34,11 @@ export default function App() {
         {state === "success" && (
           <div className="alert alert-success">
             <strong>Online</strong> - TokTickIT API is running.
+            <ul className="mt-2 mb-0">
+              {categories.map((cat) => (
+                <li key={cat.id}>{cat.name}</li>
+              ))}
+            </ul>
           </div>
         )}
         {state === "error" && (
