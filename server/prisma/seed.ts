@@ -1,33 +1,41 @@
+import { PrismaClient } from "@prisma/client";
+import { fileURLToPath } from "node:url";
 import { getPrisma } from "../src/prisma.js";
 
 // Issue 3 — seed the four supported categories.
-// The four names are: Account and Access, Hardware, Software, Network.
-// Requirement: running the seed twice must NOT create duplicates.
-// Hint: prisma.category.upsert({ where:{name}, update:{}, create:{name} }).
-async function main() {
-  const prisma = getPrisma();
-  const categories = [
-    "Account and Access",
-    "Hardware",
-    "Software",
-    "Network"
-  ];
+export const CATEGORIES = [
+  "Account and Access",
+  "Hardware",
+  "Software",
+  "Network",
+] as const;
 
-  for (const name of categories) {
+type CategoryClient = Pick<PrismaClient, "category">;
+
+export async function seedCategories(prisma: CategoryClient): Promise<void> {
+  for (const name of CATEGORIES) {
     await prisma.category.upsert({
       where: { name },
       update: {},
       create: { name },
     });
   }
+}
+
+async function main() {
+  const prisma = getPrisma();
+  await seedCategories(prisma);
   console.log("Categories seeded successfully.");
 }
 
-main()
-  .catch((e) => {
-    console.error(e);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await getPrisma().$disconnect();
-  });
+const isDirectRun = process.argv[1] === fileURLToPath(import.meta.url);
+if (isDirectRun) {
+  main()
+    .catch((e) => {
+      console.error(e);
+      process.exit(1);
+    })
+    .finally(async () => {
+      await getPrisma().$disconnect();
+    });
+}
