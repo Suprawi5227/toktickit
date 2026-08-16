@@ -1,13 +1,16 @@
-# Lab 1 — AI Use and Reflection  (fill this in)
+# Lab 1 — AI Use and Reflection
 
-**LLM/agent used:** <name>
+**LLM/agent used:** Antigravity IDE (Gemini / AI Coding Assistant)
 
 ## Selected key prompts (6–10)
 | # | Prompt (summarised) | What I did with the result |
 |---|---------------------|----------------------------|
-| 1 |  |  |
-| 2 |  |  |
+| 1 | "แก้ Issue 1 ให้หน่อย ทำไม่เป็น" | ยอมรับให้ AI รันคำสั่ง npm init และตั้งค่าโปรเจกต์พื้นฐานให้ |
+| 2 | "Issue 2 คืออะไร ต้องเริ่มยังไง" | ใช้ AI ช่วยเขียน API `/api/health` และฝั่ง React เพื่อเช็คสถานะ |
+| 3 | "มันติดหน้า COMMIT_EDITMSG ต้องทำไง" | ทำตามคำแนะนำของ AI โดยการปิดแท็บนั้นทิ้ง เพื่อยกเลิกการ commit ที่ค้างอยู่ |
+| 4 | "ช่วยรีวิว PR งานเพื่อนให้หน่อย (Achikan, titayaaa)" | นำร่างข้อความรีวิวที่ AI วิเคราะห์โค้ด (เรื่อง Schema และการ Mock DB) ไปแปะใน GitHub |
+| 5 | "เว็บขึ้น error Cannot GET /" | ได้เรียนรู้ว่าพอร์ต 3000 คือ Backend และสลับไปเปิดพอร์ต 5173 สำหรับหน้าเว็บแทน |
+| 6 | "Issue 4 ทำไง / ลองรันใน terminal ให้หน่อย" | อนุมัติแผนงานให้ AI เขียนระบบดึง Category จาก DB และขอคำสั่ง `Invoke-RestMethod` มาเทสเอง |
 
 ## Reflection
-Two or three sentences: what made your prompts better, and one place you had to
-correct or reject what the agent produced.
+การให้ข้อมูลบริบทที่ชัดเจน (เช่น ก๊อปปี้รีวิวเพื่อนมาแปะ หรือแคปจอ Error มาให้) ทำให้ AI สามารถช่วยเหลือและร่างคำตอบได้ตรงจุดมากยิ่งขึ้น อย่างไรก็ตาม ในบางครั้งที่ AI อาจจะยังไม่เห็นภาพรวมทั้งหมด (เช่น ตอนที่เพื่อนดันโค้ดขึ้นมาไม่ครบ) เราต้องเข้าไปตรวจสอบโค้ดด้วยตัวเองร่วมกับ AI ด้วย เพื่อหาข้อผิดพลาดที่แท้จริงก่อนนำไปคอมเมนต์ครับ
