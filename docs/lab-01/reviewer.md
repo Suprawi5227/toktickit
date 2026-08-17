@@ -6,7 +6,7 @@
 ## Pull Requests I authored (reviewed by my partner)
 | PR | Branch | Reviewer verdict |
 |----|--------|------------------|
-| #1 | feature/1-project-foundation | Approved |
+| #8 | feature/1-project-foundation | Approved |
 | #9 | feature/2-health-check | Approved (หลังจากแก้เรื่อง npm install / .env) |
 | #10 | feature/3-category-seed | Approved (หลังจากยืนยันเรื่อง upsert และ uniqueness) |
 | #12 | feature/4-category-list | Approved (หลังจากเคลียร์เรื่อง TODO ค้าง) |
