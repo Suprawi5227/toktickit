@@ -86,6 +86,7 @@ describe("POST /api/tickets", () => {
         categoryId: "not a number", // Invalid type
       });
 
+    console.log("RESPONSE BODY:", response.body);
     expect(response.status).toBe(400);
     expect(response.body.error).toBe("Validation failed");
     expect(response.body.details).toBeDefined();

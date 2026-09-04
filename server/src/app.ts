@@ -110,9 +110,9 @@ app.post("/api/tickets", async (req: Request, res: Response): Promise<void> => {
     });
     
     res.status(201).json(ticket);
-  } catch (error) {
-    if (error instanceof ZodError) {
-      res.status(400).json({ error: "Validation failed", details: error.errors });
+  } catch (error: any) {
+    if (error && error.name === "ZodError") {
+      res.status(400).json({ error: "Validation failed", details: error.issues });
     } else {
       console.error("Failed to create ticket:", error);
       res.status(500).json({ error: "Internal server error" });
