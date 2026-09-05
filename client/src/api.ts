@@ -42,3 +42,46 @@ export async function getRequesters(): Promise<Requester[]> {
   }
   return res.json();
 }
+
+export interface RelatedSystem {
+  id: number;
+  name: string;
+}
+
+export async function getRelatedSystems(): Promise<RelatedSystem[]> {
+  const res = await fetch(`${API_URL}/api/related-systems`);
+  if (!res.ok) {
+    throw new Error("Unable to fetch related systems");
+  }
+  return res.json();
+}
+
+export async function createTicket(data: any): Promise<any> {
+  const res = await fetch(`${API_URL}/api/tickets`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.error || "Failed to create ticket");
+  }
+  return res.json();
+}
+
+export async function uploadAttachment(ticketId: number, file: File): Promise<any> {
+  const formData = new FormData();
+  formData.append('file', file);
+  
+  const res = await fetch(`${API_URL}/api/tickets/${ticketId}/attachments`, {
+    method: 'POST',
+    body: formData,
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.error || "Failed to upload attachment");
+  }
+  return res.json();
+}

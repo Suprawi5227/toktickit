@@ -2,6 +2,7 @@ import { useState } from "react";
 import { checkSystem, Category } from "./api.js";
 import { useRequester } from "./contexts/RequesterContext.js";
 import RequesterSelector from "./components/RequesterSelector.js";
+import { CreateTicketForm } from "./components/CreateTicketForm.js";
 
 type UiState = "idle" | "loading" | "success" | "error";
 
@@ -79,9 +80,19 @@ export default function App() {
       </nav>
 
       <div className="container">
-        <div className="alert alert-info">
-          Welcome to the IT Service Desk. (Create Ticket and My Tickets UI will be implemented in upcoming issues.)
-        </div>
+        {state !== "success" ? (
+          <div className="alert alert-warning">
+            Please run the System Check on the login page to load categories before creating a ticket.
+            <br />
+            <button className="btn btn-warning btn-sm mt-2" onClick={() => setRequester(null)}>Go Back</button>
+          </div>
+        ) : (
+          <CreateTicketForm
+            requesterId={requester.id}
+            categories={categories}
+            onSuccess={(ticketNumber) => alert(`Ticket Created! ID: ${ticketNumber}`)}
+          />
+        )}
       </div>
     </div>
   );
