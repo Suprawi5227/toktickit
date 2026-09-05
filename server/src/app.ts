@@ -43,11 +43,11 @@ export const upload = multer({
   storage,
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
   fileFilter: (_req, file, cb) => {
-    const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf'];
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
     if (allowedTypes.includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error("Invalid file type. Only JPG, PNG, and PDF are allowed."));
+      cb(new Error("Invalid file type. Only JPG, PNG, WEBP, and PDF are allowed."));
     }
   }
 });
@@ -176,6 +176,7 @@ app.post("/api/tickets/:id/attachments", (req: Request, res: Response, next: exp
   try {
     const ticketId = parseInt(req.params.id, 10);
     if (isNaN(ticketId)) {
+      if (req.file) fs.unlinkSync(req.file.path);
       res.status(400).json({ error: "Invalid ticket ID" });
       return;
     }
@@ -188,7 +189,18 @@ app.post("/api/tickets/:id/attachments", (req: Request, res: Response, next: exp
     // Verify ticket exists
     const ticket = await getPrisma().ticket.findUnique({ where: { id: ticketId } });
     if (!ticket) {
+      if (req.file) fs.unlinkSync(req.file.path);
       res.status(404).json({ error: "Ticket not found" });
+      return;
+    }
+
+    const activeCount = await getPrisma().attachment.count({ 
+      where: { ticketId, isRemoved: false } 
+    });
+    
+    if (activeCount >= 5) {
+      if (req.file) fs.unlinkSync(req.file.path);
+      res.status(400).json({ error: "Maximum of 5 active attachments allowed per ticket." });
       return;
     }
 

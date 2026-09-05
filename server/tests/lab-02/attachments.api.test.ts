@@ -9,6 +9,7 @@ const mockPrisma = {
   attachment: {
     create: vi.fn(),
     findUnique: vi.fn(),
+    count: vi.fn(),
   },
 };
 
@@ -26,6 +27,7 @@ describe("Attachment API (Issue 5)", () => {
   describe("POST /api/tickets/:id/attachments", () => {
     it("should upload a valid JPG file", async () => {
       mockPrisma.ticket.findUnique.mockResolvedValue({ id: 1 });
+      mockPrisma.attachment.count.mockResolvedValue(0);
       mockPrisma.attachment.create.mockImplementation((args: any) => Promise.resolve({
         id: 1,
         ...args.data,
@@ -53,6 +55,40 @@ describe("Attachment API (Issue 5)", () => {
 
       expect(res.status).toBe(400);
       expect(res.body.error).toContain("Invalid file type");
+    });
+
+    it("should upload a valid WEBP file", async () => {
+      mockPrisma.ticket.findUnique.mockResolvedValue({ id: 1 });
+      mockPrisma.attachment.count.mockResolvedValue(0);
+      mockPrisma.attachment.create.mockImplementation((args: any) => Promise.resolve({
+        id: 2,
+        ...args.data,
+      }));
+
+      const res = await request(app)
+        .post("/api/tickets/1/attachments")
+        .attach("file", Buffer.from("fake webp content"), {
+          filename: "test.webp",
+          contentType: "image/webp",
+        });
+
+      expect(res.status).toBe(201);
+      expect(res.body.mimeType).toBe("image/webp");
+    });
+
+    it("should reject upload if ticket already has 5 active attachments", async () => {
+      mockPrisma.ticket.findUnique.mockResolvedValue({ id: 1 });
+      mockPrisma.attachment.count.mockResolvedValue(5);
+
+      const res = await request(app)
+        .post("/api/tickets/1/attachments")
+        .attach("file", Buffer.from("fake image content"), {
+          filename: "test2.jpg",
+          contentType: "image/jpeg",
+        });
+
+      expect(res.status).toBe(400);
+      expect(res.body.error).toBe("Maximum of 5 active attachments allowed per ticket.");
     });
   });
 
