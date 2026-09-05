@@ -1,6 +1,8 @@
 import express, { Request, Response } from "express";
 import cors from "cors";
 import { getPrisma } from "./prisma.js";
+import { CreateTicketSchema } from "./schemas/ticket.schema.js";
+import { ZodError } from "zod";
 // getPrisma() is your lazy database handle. Call it INSIDE a route when you
 // need the DB (Issue 4). It is intentionally unused until then.
 void getPrisma;
@@ -69,5 +71,53 @@ app.get("/api/related-systems", async (_req: Request, res: Response) => {
   }
 });
 // ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
+// Lab 2 - Issue 4: Backend Ticket Creation
+// ---------------------------------------------------------------------------
+app.post("/api/tickets", async (req: Request, res: Response): Promise<void> => {
+  try {
+    const data = CreateTicketSchema.parse(req.body);
+    
+    const ticket = await getPrisma().$transaction(async (tx) => {
+      const year = new Date().getFullYear();
+      const prefix = `TKT-${year}-`;
+      
+      const lastTicket = await tx.ticket.findFirst({
+        where: { ticketNumber: { startsWith: prefix } },
+        orderBy: { ticketNumber: 'desc' },
+      });
+      
+      let nextNumber = 1;
+      if (lastTicket) {
+        const lastSequence = parseInt(lastTicket.ticketNumber.slice(-6), 10);
+        nextNumber = lastSequence + 1;
+      }
+      
+      const ticketNumber = `${prefix}${String(nextNumber).padStart(6, '0')}`;
+      
+      return tx.ticket.create({
+        data: {
+          ticketNumber,
+          summary: data.summary,
+          description: data.description,
+          requestedPriority: data.requestedPriority,
+          categoryId: data.categoryId,
+          relatedSystemId: data.relatedSystemId,
+          requesterId: data.requesterId,
+        },
+      });
+    });
+    
+    res.status(201).json(ticket);
+  } catch (error: any) {
+    if (error && error.name === "ZodError") {
+      res.status(400).json({ error: "Validation failed", details: error.issues });
+    } else {
+      console.error("Failed to create ticket:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  }
+});
 
 export default app;
