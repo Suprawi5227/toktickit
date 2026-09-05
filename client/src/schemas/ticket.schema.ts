@@ -8,7 +8,7 @@ export const CreateTicketSchema = z.object({
   description: z.string().min(1, "Description is required"),
   categoryId: z.coerce.number({ invalid_type_error: "Category is required" }).int().positive("Category is required"),
   relatedSystemId: z.coerce.number({ invalid_type_error: "Related System is required" }).int().positive("Related System is required"),
-  requestedPriority: z.enum(["LOW", "MEDIUM", "HIGH", "CRITICAL"]),
+  requestedPriority: z.enum(["LOW", "MEDIUM", "HIGH", "URGENT"]),
   attachments: z.any()
     .refine((files: FileList | null) => !files || files.length <= 5, "Maximum of 5 files are allowed.")
     .refine((files: FileList | null) => {

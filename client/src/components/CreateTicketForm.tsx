@@ -64,7 +64,7 @@ export function CreateTicketForm({ requesterId, categories, onSuccess }: CreateT
 
       reset(); // Clear the form
       if (onSuccess) {
-        onSuccess(newTicket.ticketNumber);
+        onSuccess(newTicket.ticketNo);
       }
     } catch (err: any) {
       setGlobalError(err.message || "Failed to submit ticket.");
@@ -136,7 +136,7 @@ export function CreateTicketForm({ requesterId, categories, onSuccess }: CreateT
               <option value="LOW">Low</option>
               <option value="MEDIUM">Medium</option>
               <option value="HIGH">High</option>
-              <option value="CRITICAL">Critical</option>
+              <option value="URGENT">Urgent</option>
             </select>
             {errors.requestedPriority && <div className="invalid-feedback">{errors.requestedPriority.message as string}</div>}
           </div>
