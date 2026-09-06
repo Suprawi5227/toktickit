@@ -3,9 +3,10 @@ import { getMyTickets, Ticket } from "../api.js";
 
 interface MyTicketsProps {
   requesterId: number;
+  onViewTicket: (id: number) => void;
 }
 
-export function MyTickets({ requesterId }: MyTicketsProps) {
+export function MyTickets({ requesterId, onViewTicket }: MyTicketsProps) {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -82,16 +83,17 @@ export function MyTickets({ requesterId }: MyTicketsProps) {
               <th>Priority</th>
               <th>Status</th>
               <th>Created At</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={6} className="text-center py-4">Loading tickets...</td>
+                <td colSpan={7} className="text-center py-4">Loading tickets...</td>
               </tr>
             ) : tickets.length === 0 ? (
               <tr>
-                <td colSpan={6} className="text-center py-4 text-muted">No tickets found.</td>
+                <td colSpan={7} className="text-center py-4 text-muted">No tickets found.</td>
               </tr>
             ) : (
               tickets.map((ticket) => (
@@ -102,6 +104,9 @@ export function MyTickets({ requesterId }: MyTicketsProps) {
                   <td><span className={getPriorityBadge(ticket.requestedPriority)}>{ticket.requestedPriority}</span></td>
                   <td><span className="badge bg-secondary">{ticket.status}</span></td>
                   <td>{new Date(ticket.createdAt).toLocaleDateString()}</td>
+                  <td>
+                    <button className="btn btn-sm btn-outline-primary" onClick={() => onViewTicket(ticket.id)}>View</button>
+                  </td>
                 </tr>
               ))
             )}

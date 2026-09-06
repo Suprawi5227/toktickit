@@ -4,12 +4,14 @@ import { useRequester } from "./contexts/RequesterContext.js";
 import RequesterSelector from "./components/RequesterSelector.js";
 import { CreateTicketForm } from "./components/CreateTicketForm.js";
 import { MyTickets } from "./components/MyTickets.js";
+import { TicketDetail } from "./components/TicketDetail.js";
 
 type UiState = "idle" | "loading" | "success" | "error";
 
 export default function App() {
   const [state, setState] = useState<UiState>("idle");
   const [tab, setTab] = useState<"list" | "create">("list");
+  const [selectedTicketId, setSelectedTicketId] = useState<number | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const { requester, setRequester } = useRequester();
 
@@ -93,8 +95,8 @@ export default function App() {
             <ul className="nav nav-tabs mb-4">
               <li className="nav-item">
                 <button 
-                  className={`nav-link ${tab === "list" ? "active fw-bold text-success" : "text-secondary"}`} 
-                  onClick={() => setTab("list")}
+                  className={`nav-link ${tab === "list" && selectedTicketId === null ? "active fw-bold text-success" : "text-secondary"}`} 
+                  onClick={() => { setTab("list"); setSelectedTicketId(null); }}
                   style={{ cursor: "pointer", background: "none", border: "none" }}
                 >
                   My Tickets
@@ -103,7 +105,7 @@ export default function App() {
               <li className="nav-item">
                 <button 
                   className={`nav-link ${tab === "create" ? "active fw-bold text-success" : "text-secondary"}`} 
-                  onClick={() => setTab("create")}
+                  onClick={() => { setTab("create"); setSelectedTicketId(null); }}
                   style={{ cursor: "pointer", background: "none", border: "none" }}
                 >
                   Create Ticket
@@ -111,8 +113,10 @@ export default function App() {
               </li>
             </ul>
 
-            {tab === "list" ? (
-              <MyTickets requesterId={requester.id} />
+            {selectedTicketId !== null ? (
+              <TicketDetail ticketId={selectedTicketId} onBack={() => setSelectedTicketId(null)} />
+            ) : tab === "list" ? (
+              <MyTickets requesterId={requester.id} onViewTicket={(id) => setSelectedTicketId(id)} />
             ) : (
               <CreateTicketForm
                 requesterId={requester.id}
@@ -120,6 +124,7 @@ export default function App() {
                 onSuccess={(ticketNo) => {
                   alert(`Ticket Created! ID: ${ticketNo}`);
                   setTab("list");
+                  setSelectedTicketId(null);
                 }}
               />
             )}
