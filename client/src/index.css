@@ -1,0 +1,77 @@
+/* Global UI Polish for TokTickIT */
+
+body {
+  background-color: #f8f9fa;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  color: #343a40;
+}
+
+/* Card Hover Effects */
+.card {
+  border: none;
+  border-radius: 12px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  box-shadow: 0 10px 20px rgba(0,0,0,0.05) !important;
+  transform: translateY(-2px);
+}
+
+/* Table Enhancements */
+.table-hover tbody tr {
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.table-hover tbody tr:hover {
+  background-color: rgba(25, 135, 84, 0.04);
+}
+
+.table th {
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  letter-spacing: 0.5px;
+  color: #6c757d;
+  border-bottom: 2px solid #e9ecef;
+}
+
+/* Button Animations */
+.btn {
+  transition: all 0.2s ease;
+  border-radius: 8px;
+}
+
+.btn:active {
+  transform: scale(0.97);
+}
+
+/* Tab Fade Animation */
+.tab-content-enter {
+  animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Badges */
+.badge {
+  padding: 0.5em 0.75em;
+  font-weight: 500;
+  border-radius: 6px;
+}
+
+/* Attachment List */
+.attachment-item {
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  background-color: white;
+  transition: border-color 0.2s ease;
+}
+
+.attachment-item:hover {
+  border-color: #198754;
+}

@@ -55,9 +55,9 @@ export function MyTickets({ requesterId, onViewTicket }: MyTicketsProps) {
   };
 
   return (
-    <div className="card shadow-sm p-4 mt-4">
+    <div className="tab-content-enter">
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <h3>My Tickets</h3>
+        <h3 className="h5 mb-0 text-secondary">My Recent Tickets</h3>
         
         <form onSubmit={handleSearch} className="d-flex" style={{ maxWidth: "300px" }}>
           <input 
@@ -73,9 +73,11 @@ export function MyTickets({ requesterId, onViewTicket }: MyTicketsProps) {
 
       {error && <div className="alert alert-danger">{error}</div>}
 
-      <div className="table-responsive">
-        <table className="table table-hover align-middle">
-          <thead className="table-light">
+      <div className="card shadow-sm border-0">
+        <div className="card-body p-0">
+          <div className="table-responsive">
+            <table className="table table-hover align-middle mb-0">
+              <thead className="table-light">
             <tr>
               <th>Ticket No.</th>
               <th>Summary</th>
@@ -89,11 +91,17 @@ export function MyTickets({ requesterId, onViewTicket }: MyTicketsProps) {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={7} className="text-center py-4">Loading tickets...</td>
+                <td colSpan={7} className="text-center py-5 text-muted">
+                  <div className="spinner-border spinner-border-sm me-2 text-success" role="status"></div>
+                  Loading tickets...
+                </td>
               </tr>
             ) : tickets.length === 0 ? (
               <tr>
-                <td colSpan={7} className="text-center py-4 text-muted">No tickets found.</td>
+                <td colSpan={7} className="text-center py-5 text-muted">
+                  <i className="bi bi-inbox fs-2 d-block mb-2 text-secondary"></i>
+                  {searchInput ? "No tickets match your search." : "You have no tickets yet."}
+                </td>
               </tr>
             ) : (
               tickets.map((ticket) => (
@@ -112,6 +120,8 @@ export function MyTickets({ requesterId, onViewTicket }: MyTicketsProps) {
             )}
           </tbody>
         </table>
+      </div>
+      </div>
       </div>
 
       {/* Pagination Controls */}
