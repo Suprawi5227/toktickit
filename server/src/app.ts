@@ -158,6 +158,64 @@ app.post("/api/tickets", async (req: Request, res: Response): Promise<void> => {
   }
 });
 
+// ---------------------------------------------------------------------------
+// Lab 2 - Issue 7: My Tickets API
+// ---------------------------------------------------------------------------
+app.get("/api/tickets", async (req: Request, res: Response): Promise<void> => {
+  try {
+    const requesterId = parseInt(req.query.requesterId as string, 10);
+    if (isNaN(requesterId)) {
+      res.status(400).json({ error: "Missing or invalid requesterId" });
+      return;
+    }
+
+    const page = Math.max(1, parseInt(req.query.page as string, 10) || 1);
+    const limit = Math.max(1, parseInt(req.query.limit as string, 10) || 10);
+    const skip = (page - 1) * limit;
+    
+    const search = req.query.search as string;
+
+    const whereClause: any = {
+      requesterId
+    };
+
+    if (search) {
+      whereClause.OR = [
+        { ticketNumber: { contains: search, mode: "insensitive" } },
+        { summary: { contains: search, mode: "insensitive" } }
+      ];
+    }
+
+    const [total, tickets] = await Promise.all([
+      getPrisma().ticket.count({ where: whereClause }),
+      getPrisma().ticket.findMany({
+        where: whereClause,
+        include: {
+          category: { select: { name: true } },
+          relatedSystem: { select: { name: true } },
+        },
+        orderBy: { id: "desc" },
+        skip,
+        take: limit,
+      })
+    ]);
+
+    const totalPages = Math.ceil(total / limit);
+
+    res.status(200).json({
+      data: tickets,
+      meta: {
+        total,
+        page,
+        totalPages
+      }
+    });
+  } catch (error) {
+    console.error("Failed to fetch tickets:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 
 // ---------------------------------------------------------------------------
 // Lab 2 - Issue 5: Backend Attachment API

@@ -57,3 +57,16 @@ export async function uploadAttachment(ticketId, file) {
     }
     return res.json();
 }
+export async function getMyTickets(requesterId, page = 1, search = "") {
+    const url = new URL(`${API_URL}/api/tickets`);
+    url.searchParams.append("requesterId", requesterId.toString());
+    url.searchParams.append("page", page.toString());
+    if (search) {
+        url.searchParams.append("search", search);
+    }
+    const res = await fetch(url.toString());
+    if (!res.ok) {
+        throw new Error("Failed to fetch tickets");
+    }
+    return res.json();
+}
