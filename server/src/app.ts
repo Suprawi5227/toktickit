@@ -316,4 +316,115 @@ app.get("/api/attachments/:id", async (req: Request, res: Response): Promise<voi
   }
 });
 
+// ---------------------------------------------------------------------------
+// Lab 2 - Issue 8: Ticket Detail & Attachment Deletion
+// ---------------------------------------------------------------------------
+app.get("/api/tickets/:id", async (req: Request, res: Response): Promise<void> => {
+  try {
+    const requesterIdStr = req.headers['x-requester-id'] as string;
+    const requesterId = parseInt(requesterIdStr, 10);
+    if (isNaN(requesterId)) {
+      res.status(400).json({ error: "Missing or invalid x-requester-id header" });
+      return;
+    }
+
+    const ticketId = parseInt(req.params.id, 10);
+    if (isNaN(ticketId)) {
+      res.status(400).json({ error: "Invalid ticket ID" });
+      return;
+    }
+
+    const ticket = await getPrisma().ticket.findUnique({
+      where: { id: ticketId },
+      include: {
+        category: { select: { name: true } },
+        relatedSystem: { select: { name: true } },
+        requester: { select: { name: true, email: true } },
+        attachments: {
+          where: { isRemoved: false },
+          select: {
+            id: true,
+            originalName: true,
+            size: true,
+            mimeType: true,
+            createdAt: true,
+          },
+          orderBy: { createdAt: 'asc' },
+        },
+      }
+    });
+
+    if (!ticket) {
+      res.status(404).json({ error: "Ticket not found" });
+      return;
+    }
+
+    if (ticket.requesterId !== requesterId) {
+      res.status(403).json({ error: "Forbidden: You are not the owner of this ticket" });
+      return;
+    }
+
+    res.status(200).json({ success: true, data: ticket });
+  } catch (error) {
+    console.error("Failed to fetch ticket details:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+app.delete("/api/attachments/:id", async (req: Request, res: Response): Promise<void> => {
+  try {
+    const requesterIdStr = req.headers['x-requester-id'] as string;
+    const requesterId = parseInt(requesterIdStr, 10);
+    if (isNaN(requesterId)) {
+      res.status(400).json({ error: "Missing or invalid x-requester-id header" });
+      return;
+    }
+
+    const reason = req.body.reason;
+    if (!reason || typeof reason !== "string") {
+      res.status(400).json({ error: "Missing or invalid removal reason" });
+      return;
+    }
+
+    const attachmentId = parseInt(req.params.id, 10);
+    if (isNaN(attachmentId)) {
+      res.status(400).json({ error: "Invalid attachment ID" });
+      return;
+    }
+
+    const attachment = await getPrisma().attachment.findUnique({ 
+      where: { id: attachmentId },
+      include: { ticket: { select: { requesterId: true } } }
+    });
+    if (!attachment) {
+      res.status(404).json({ error: "Attachment not found" });
+      return;
+    }
+
+    if (attachment.ticket.requesterId !== requesterId) {
+      res.status(403).json({ error: "Forbidden: You are not the owner of this ticket" });
+      return;
+    }
+
+    if (attachment.isRemoved) {
+      res.status(400).json({ error: "Attachment is already removed" });
+      return;
+    }
+
+    // Soft delete
+    await getPrisma().attachment.update({
+      where: { id: attachmentId },
+      data: {
+        isRemoved: true,
+        removedReason: reason
+      }
+    });
+
+    res.status(200).json({ success: true, message: "Attachment removed successfully" });
+  } catch (error) {
+    console.error("Failed to delete attachment:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 export default app;

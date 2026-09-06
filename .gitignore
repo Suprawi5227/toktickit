@@ -18,3 +18,5 @@ uploads/
 
 # misc
 *.diff
+client/src/**/*.js
+client/tests/**/*.js
