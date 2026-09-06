@@ -1,6 +1,12 @@
 import express, { Request, Response } from "express";
 import cors from "cors";
 import { getPrisma } from "./prisma.js";
+import { CreateTicketSchema } from "./schemas/ticket.schema.js";
+import { ZodError } from "zod";
+import multer from "multer";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
 // getPrisma() is your lazy database handle. Call it INSIDE a route when you
 // need the DB (Issue 4). It is intentionally unused until then.
 void getPrisma;
@@ -11,6 +17,40 @@ export const app = express();
 
 app.use(cors());          // already wired: lets the Vite dev server call this API
 app.use(express.json());
+
+// ---------------------------------------------------------------------------
+// Multer Configuration
+// ---------------------------------------------------------------------------
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const uploadDir = path.join(__dirname, "../../uploads");
+
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+const storage = multer.diskStorage({
+  destination: (_req, _file, cb) => {
+    cb(null, uploadDir);
+  },
+  filename: (_req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, uniqueSuffix + '-' + file.originalname);
+  }
+});
+
+export const upload = multer({ 
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+  fileFilter: (_req, file, cb) => {
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error("Invalid file type. Only JPG, PNG, WEBP, and PDF are allowed."));
+    }
+  }
+});
 
 // ---------------------------------------------------------------------------
 // Issue 2 — API health check
@@ -40,5 +80,351 @@ app.get("/api/categories", async (_req: Request, res: Response) => {
   }
 });
 // ---------------------------------------------------------------------------
+// Lab 2 - Issue 2: Development Requester Context
+// ---------------------------------------------------------------------------
+app.get("/api/requesters", async (_req: Request, res: Response) => {
+  try {
+    const requesters = await getPrisma().developmentRequester.findMany({
+      where: { isActive: true },
+      select: { id: true, name: true, email: true },
+      orderBy: { id: "asc" },
+    });
+    res.status(200).json(requesters);
+  } catch (error) {
+    console.error("Failed to fetch requesters:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+app.get("/api/related-systems", async (_req: Request, res: Response) => {
+  try {
+    const systems = await getPrisma().relatedSystem.findMany({
+      select: { id: true, name: true },
+      orderBy: { name: "asc" },
+    });
+    res.status(200).json(systems);
+  } catch (error) {
+    console.error("Failed to fetch related systems:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+// ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
+// Lab 2 - Issue 4: Backend Ticket Creation
+// ---------------------------------------------------------------------------
+app.post("/api/tickets", async (req: Request, res: Response): Promise<void> => {
+  try {
+    const data = CreateTicketSchema.parse(req.body);
+    
+    const ticket = await getPrisma().$transaction(async (tx) => {
+      const year = new Date().getFullYear();
+      const prefix = `TKT-${year}-`;
+      
+      const lastTicket = await tx.ticket.findFirst({
+        where: { ticketNumber: { startsWith: prefix } },
+        orderBy: { ticketNumber: 'desc' },
+      });
+      
+      let nextNumber = 1;
+      if (lastTicket) {
+        const lastSequence = parseInt(lastTicket.ticketNumber.slice(-6), 10);
+        nextNumber = lastSequence + 1;
+      }
+      
+      const ticketNumber = `${prefix}${String(nextNumber).padStart(6, '0')}`;
+      
+      return tx.ticket.create({
+        data: {
+          ticketNumber,
+          summary: data.summary,
+          description: data.description,
+          requestedPriority: data.requestedPriority,
+          categoryId: data.categoryId,
+          relatedSystemId: data.relatedSystemId,
+          requesterId: data.requesterId,
+        },
+      });
+    });
+    
+    res.status(201).json(ticket);
+  } catch (error: any) {
+    if (error && error.name === "ZodError") {
+      res.status(400).json({ error: "Validation failed", details: error.issues });
+    } else {
+      console.error("Failed to create ticket:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Lab 2 - Issue 7: My Tickets API
+// ---------------------------------------------------------------------------
+app.get("/api/tickets", async (req: Request, res: Response): Promise<void> => {
+  try {
+    const requesterIdStr = req.headers['x-requester-id'] as string;
+    const requesterId = parseInt(requesterIdStr, 10);
+    if (isNaN(requesterId)) {
+      res.status(400).json({ error: "Missing or invalid x-requester-id header" });
+      return;
+    }
+
+    const page = Math.max(1, parseInt(req.query.page as string, 10) || 1);
+    const limit = Math.max(1, parseInt(req.query.limit as string, 10) || 10);
+    const skip = (page - 1) * limit;
+    
+    const search = req.query.search as string;
+
+    const whereClause: any = {
+      requesterId
+    };
+
+    if (search) {
+      whereClause.OR = [
+        { ticketNumber: { contains: search, mode: "insensitive" } },
+        { summary: { contains: search, mode: "insensitive" } }
+      ];
+    }
+
+    const [total, tickets] = await Promise.all([
+      getPrisma().ticket.count({ where: whereClause }),
+      getPrisma().ticket.findMany({
+        where: whereClause,
+        include: {
+          category: { select: { name: true } },
+          relatedSystem: { select: { name: true } },
+        },
+        orderBy: { id: "desc" },
+        skip,
+        take: limit,
+      })
+    ]);
+
+    const totalPages = Math.ceil(total / limit);
+
+    res.status(200).json({
+      success: true,
+      data: tickets,
+      meta: {
+        totalItems: total,
+        limit,
+        page,
+        totalPages
+      }
+    });
+  } catch (error) {
+    console.error("Failed to fetch tickets:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+
+// ---------------------------------------------------------------------------
+// Lab 2 - Issue 5: Backend Attachment API
+// ---------------------------------------------------------------------------
+app.post("/api/tickets/:id/attachments", (req: Request, res: Response, next: express.NextFunction) => {
+  upload.single("file")(req, res, (err) => {
+    if (err) {
+      if (err instanceof multer.MulterError && err.code === 'LIMIT_FILE_SIZE') {
+        return res.status(400).json({ error: "File size exceeds the 5MB limit." });
+      }
+      return res.status(400).json({ error: err.message });
+    }
+    next();
+  });
+}, async (req: Request, res: Response): Promise<void> => {
+  try {
+    const ticketId = parseInt(req.params.id, 10);
+    if (isNaN(ticketId)) {
+      if (req.file) fs.unlinkSync(req.file.path);
+      res.status(400).json({ error: "Invalid ticket ID" });
+      return;
+    }
+
+    if (!req.file) {
+      res.status(400).json({ error: "No file uploaded" });
+      return;
+    }
+
+    // Verify ticket exists
+    const ticket = await getPrisma().ticket.findUnique({ where: { id: ticketId } });
+    if (!ticket) {
+      if (req.file) fs.unlinkSync(req.file.path);
+      res.status(404).json({ error: "Ticket not found" });
+      return;
+    }
+
+    const activeCount = await getPrisma().attachment.count({ 
+      where: { ticketId, isRemoved: false } 
+    });
+    
+    if (activeCount >= 5) {
+      if (req.file) fs.unlinkSync(req.file.path);
+      res.status(400).json({ error: "Maximum of 5 active attachments allowed per ticket." });
+      return;
+    }
+
+    const attachment = await getPrisma().attachment.create({
+      data: {
+        ticketId,
+        filename: req.file.filename,
+        originalName: req.file.originalname,
+        mimeType: req.file.mimetype,
+        size: req.file.size,
+      }
+    });
+
+    res.status(201).json(attachment);
+  } catch (error) {
+    console.error("Failed to upload attachment:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+app.get("/api/attachments/:id", async (req: Request, res: Response): Promise<void> => {
+  try {
+    const attachmentId = parseInt(req.params.id, 10);
+    if (isNaN(attachmentId)) {
+      res.status(400).json({ error: "Invalid attachment ID" });
+      return;
+    }
+
+    const attachment = await getPrisma().attachment.findUnique({ where: { id: attachmentId } });
+    if (!attachment) {
+      res.status(404).json({ error: "Attachment not found" });
+      return;
+    }
+
+    if (attachment.isRemoved) {
+      res.status(410).json({ error: "Gone", reason: attachment.removedReason || "File was removed" });
+      return;
+    }
+
+    const filePath = path.join(uploadDir, attachment.filename);
+    if (!fs.existsSync(filePath)) {
+      res.status(404).json({ error: "File not found on server" });
+      return;
+    }
+
+    res.setHeader("Content-Type", attachment.mimeType);
+    res.setHeader("Content-Disposition", `inline; filename="${attachment.originalName}"`);
+    res.sendFile(filePath);
+  } catch (error) {
+    console.error("Failed to download attachment:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Lab 2 - Issue 8: Ticket Detail & Attachment Deletion
+// ---------------------------------------------------------------------------
+app.get("/api/tickets/:id", async (req: Request, res: Response): Promise<void> => {
+  try {
+    const requesterIdStr = req.headers['x-requester-id'] as string;
+    const requesterId = parseInt(requesterIdStr, 10);
+    if (isNaN(requesterId)) {
+      res.status(400).json({ error: "Missing or invalid x-requester-id header" });
+      return;
+    }
+
+    const ticketId = parseInt(req.params.id, 10);
+    if (isNaN(ticketId)) {
+      res.status(400).json({ error: "Invalid ticket ID" });
+      return;
+    }
+
+    const ticket = await getPrisma().ticket.findUnique({
+      where: { id: ticketId },
+      include: {
+        category: { select: { name: true } },
+        relatedSystem: { select: { name: true } },
+        requester: { select: { name: true, email: true } },
+        attachments: {
+          where: { isRemoved: false },
+          select: {
+            id: true,
+            originalName: true,
+            size: true,
+            mimeType: true,
+            createdAt: true,
+          },
+          orderBy: { createdAt: 'asc' },
+        },
+      }
+    });
+
+    if (!ticket) {
+      res.status(404).json({ error: "Ticket not found" });
+      return;
+    }
+
+    if (ticket.requesterId !== requesterId) {
+      res.status(403).json({ error: "Forbidden: You are not the owner of this ticket" });
+      return;
+    }
+
+    res.status(200).json({ success: true, data: ticket });
+  } catch (error) {
+    console.error("Failed to fetch ticket details:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+app.delete("/api/attachments/:id", async (req: Request, res: Response): Promise<void> => {
+  try {
+    const requesterIdStr = req.headers['x-requester-id'] as string;
+    const requesterId = parseInt(requesterIdStr, 10);
+    if (isNaN(requesterId)) {
+      res.status(400).json({ error: "Missing or invalid x-requester-id header" });
+      return;
+    }
+
+    const reason = req.body.reason;
+    if (!reason || typeof reason !== "string") {
+      res.status(400).json({ error: "Missing or invalid removal reason" });
+      return;
+    }
+
+    const attachmentId = parseInt(req.params.id, 10);
+    if (isNaN(attachmentId)) {
+      res.status(400).json({ error: "Invalid attachment ID" });
+      return;
+    }
+
+    const attachment = await getPrisma().attachment.findUnique({ 
+      where: { id: attachmentId },
+      include: { ticket: { select: { requesterId: true } } }
+    });
+    if (!attachment) {
+      res.status(404).json({ error: "Attachment not found" });
+      return;
+    }
+
+    if (attachment.ticket.requesterId !== requesterId) {
+      res.status(403).json({ error: "Forbidden: You are not the owner of this ticket" });
+      return;
+    }
+
+    if (attachment.isRemoved) {
+      res.status(400).json({ error: "Attachment is already removed" });
+      return;
+    }
+
+    // Soft delete
+    await getPrisma().attachment.update({
+      where: { id: attachmentId },
+      data: {
+        isRemoved: true,
+        removedReason: reason
+      }
+    });
+
+    res.status(200).json({ success: true, message: "Attachment removed successfully" });
+  } catch (error) {
+    console.error("Failed to delete attachment:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
 
 export default app;

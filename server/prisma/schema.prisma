@@ -14,4 +14,68 @@ model Category {
   id        Int      @id @default(autoincrement())
   name      String   @unique
   createdAt DateTime @default(now())
+  tickets   Ticket[]
+}
+
+model DevelopmentRequester {
+  id       Int      @id @default(autoincrement())
+  name     String
+  email    String   @unique
+  isActive Boolean  @default(true)
+  tickets  Ticket[]
+}
+
+model RelatedSystem {
+  id      Int      @id @default(autoincrement())
+  name    String   @unique
+  tickets Ticket[]
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum TicketStatus {
+  NEW
+  IN_PROGRESS
+  PENDING
+  RESOLVED
+  CLOSED
+  CANCELLED
+}
+
+model Ticket {
+  id                Int                  @id @default(autoincrement())
+  ticketNumber      String               @unique
+  summary           String
+  description       String
+  requestedPriority Priority             @default(MEDIUM)
+  status            TicketStatus         @default(NEW)
+  requesterId       Int
+  categoryId        Int
+  relatedSystemId   Int
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+  
+  requester         DevelopmentRequester @relation(fields: [requesterId], references: [id])
+  category          Category             @relation(fields: [categoryId], references: [id])
+  relatedSystem     RelatedSystem        @relation(fields: [relatedSystemId], references: [id])
+  attachments       Attachment[]
+}
+
+model Attachment {
+  id           Int      @id @default(autoincrement())
+  ticketId     Int
+  filename     String
+  originalName String
+  mimeType     String
+  size         Int
+  isRemoved    Boolean  @default(false)
+  removedReason String?
+  createdAt    DateTime @default(now())
+  
+  ticket       Ticket   @relation(fields: [ticketId], references: [id])
 }

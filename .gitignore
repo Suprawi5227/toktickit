@@ -12,3 +12,11 @@ server/prisma/*.db
 # logs & OS
 *.log
 .DS_Store
+
+# uploads
+uploads/
+
+# misc
+*.diff
+client/src/**/*.js
+client/tests/**/*.js
