@@ -5,10 +5,11 @@ const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
 
 interface TicketDetailProps {
   ticketId: number;
+  requesterId: number;
   onBack: () => void;
 }
 
-export function TicketDetail({ ticketId, onBack }: TicketDetailProps) {
+export function TicketDetail({ ticketId, requesterId, onBack }: TicketDetailProps) {
   const [ticket, setTicket] = useState<Ticket | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -17,7 +18,7 @@ export function TicketDetail({ ticketId, onBack }: TicketDetailProps) {
     setLoading(true);
     setError(null);
     try {
-      const data = await getTicket(ticketId);
+      const data = await getTicket(ticketId, requesterId);
       setTicket(data);
     } catch (err: any) {
       setError(err.message || "Failed to load ticket");
@@ -31,10 +32,11 @@ export function TicketDetail({ ticketId, onBack }: TicketDetailProps) {
   }, [ticketId]);
 
   const handleDeleteAttachment = async (id: number) => {
-    if (!window.confirm("Are you sure you want to delete this attachment?")) return;
+    const reason = window.prompt("Please enter a reason for deletion:");
+    if (!reason) return;
     
     try {
-      await deleteAttachment(id);
+      await deleteAttachment(id, requesterId, reason);
       await fetchTicket(); // Refresh ticket to update attachment list
     } catch (err: any) {
       alert(err.message || "Failed to delete attachment");

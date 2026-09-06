@@ -321,6 +321,13 @@ app.get("/api/attachments/:id", async (req: Request, res: Response): Promise<voi
 // ---------------------------------------------------------------------------
 app.get("/api/tickets/:id", async (req: Request, res: Response): Promise<void> => {
   try {
+    const requesterIdStr = req.headers['x-requester-id'] as string;
+    const requesterId = parseInt(requesterIdStr, 10);
+    if (isNaN(requesterId)) {
+      res.status(400).json({ error: "Missing or invalid x-requester-id header" });
+      return;
+    }
+
     const ticketId = parseInt(req.params.id, 10);
     if (isNaN(ticketId)) {
       res.status(400).json({ error: "Invalid ticket ID" });
@@ -352,7 +359,12 @@ app.get("/api/tickets/:id", async (req: Request, res: Response): Promise<void> =
       return;
     }
 
-    res.status(200).json(ticket);
+    if (ticket.requesterId !== requesterId) {
+      res.status(403).json({ error: "Forbidden: You are not the owner of this ticket" });
+      return;
+    }
+
+    res.status(200).json({ success: true, data: ticket });
   } catch (error) {
     console.error("Failed to fetch ticket details:", error);
     res.status(500).json({ error: "Internal server error" });
@@ -361,15 +373,36 @@ app.get("/api/tickets/:id", async (req: Request, res: Response): Promise<void> =
 
 app.delete("/api/attachments/:id", async (req: Request, res: Response): Promise<void> => {
   try {
+    const requesterIdStr = req.headers['x-requester-id'] as string;
+    const requesterId = parseInt(requesterIdStr, 10);
+    if (isNaN(requesterId)) {
+      res.status(400).json({ error: "Missing or invalid x-requester-id header" });
+      return;
+    }
+
+    const reason = req.body.reason;
+    if (!reason || typeof reason !== "string") {
+      res.status(400).json({ error: "Missing or invalid removal reason" });
+      return;
+    }
+
     const attachmentId = parseInt(req.params.id, 10);
     if (isNaN(attachmentId)) {
       res.status(400).json({ error: "Invalid attachment ID" });
       return;
     }
 
-    const attachment = await getPrisma().attachment.findUnique({ where: { id: attachmentId } });
+    const attachment = await getPrisma().attachment.findUnique({ 
+      where: { id: attachmentId },
+      include: { ticket: { select: { requesterId: true } } }
+    });
     if (!attachment) {
       res.status(404).json({ error: "Attachment not found" });
+      return;
+    }
+
+    if (attachment.ticket.requesterId !== requesterId) {
+      res.status(403).json({ error: "Forbidden: You are not the owner of this ticket" });
       return;
     }
 
@@ -383,7 +416,7 @@ app.delete("/api/attachments/:id", async (req: Request, res: Response): Promise<
       where: { id: attachmentId },
       data: {
         isRemoved: true,
-        removedReason: "User deleted"
+        removedReason: reason
       }
     });
 

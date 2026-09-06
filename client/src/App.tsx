@@ -114,7 +114,7 @@ export default function App() {
             </ul>
 
             {selectedTicketId !== null ? (
-              <TicketDetail ticketId={selectedTicketId} onBack={() => setSelectedTicketId(null)} />
+              <TicketDetail ticketId={selectedTicketId} requesterId={requester.id} onBack={() => setSelectedTicketId(null)} />
             ) : tab === "list" ? (
               <MyTickets requesterId={requester.id} onViewTicket={(id) => setSelectedTicketId(id)} />
             ) : (

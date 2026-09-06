@@ -138,17 +138,27 @@ export async function getMyTickets(requesterId: number, page: number = 1, search
   return res.json();
 }
 
-export async function getTicket(id: number): Promise<Ticket> {
-  const res = await fetch(`${API_URL}/api/tickets/${id}`);
+export async function getTicket(id: number, requesterId: number): Promise<Ticket> {
+  const res = await fetch(`${API_URL}/api/tickets/${id}`, {
+    headers: {
+      "x-requester-id": requesterId.toString()
+    }
+  });
   if (!res.ok) {
     throw new Error("Failed to fetch ticket");
   }
-  return res.json();
+  const result = await res.json();
+  return result.data;
 }
 
-export async function deleteAttachment(id: number): Promise<void> {
+export async function deleteAttachment(id: number, requesterId: number, reason: string): Promise<void> {
   const res = await fetch(`${API_URL}/api/attachments/${id}`, {
-    method: "DELETE"
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+      "x-requester-id": requesterId.toString()
+    },
+    body: JSON.stringify({ reason })
   });
   if (!res.ok) {
     const err = await res.json();
