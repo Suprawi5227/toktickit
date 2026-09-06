@@ -163,9 +163,10 @@ app.post("/api/tickets", async (req: Request, res: Response): Promise<void> => {
 // ---------------------------------------------------------------------------
 app.get("/api/tickets", async (req: Request, res: Response): Promise<void> => {
   try {
-    const requesterId = parseInt(req.query.requesterId as string, 10);
+    const requesterIdStr = req.headers['x-requester-id'] as string;
+    const requesterId = parseInt(requesterIdStr, 10);
     if (isNaN(requesterId)) {
-      res.status(400).json({ error: "Missing or invalid requesterId" });
+      res.status(400).json({ error: "Missing or invalid x-requester-id header" });
       return;
     }
 
@@ -203,9 +204,11 @@ app.get("/api/tickets", async (req: Request, res: Response): Promise<void> => {
     const totalPages = Math.ceil(total / limit);
 
     res.status(200).json({
+      success: true,
       data: tickets,
       meta: {
-        total,
+        totalItems: total,
+        limit,
         page,
         totalPages
       }
