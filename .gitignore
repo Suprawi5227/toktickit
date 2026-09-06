@@ -15,3 +15,6 @@ server/prisma/*.db
 
 # uploads
 uploads/
+
+# misc
+*.diff

@@ -85,3 +85,46 @@ export async function uploadAttachment(ticketId: number, file: File): Promise<an
   }
   return res.json();
 }
+
+export interface TicketMeta {
+  totalItems: number;
+  limit: number;
+  page: number;
+  totalPages: number;
+}
+
+export interface Ticket {
+  id: number;
+  ticketNo: string;
+  ticketNumber: string;
+  summary: string;
+  requestedPriority: string;
+  status: string;
+  category: { name: string };
+  relatedSystem: { name: string };
+  createdAt: string;
+}
+
+export interface TicketsResponse {
+  success: boolean;
+  data: Ticket[];
+  meta: TicketMeta;
+}
+
+export async function getMyTickets(requesterId: number, page: number = 1, search: string = ""): Promise<TicketsResponse> {
+  const url = new URL(`${API_URL}/api/tickets`);
+  url.searchParams.append("page", page.toString());
+  if (search) {
+    url.searchParams.append("search", search);
+  }
+  
+  const res = await fetch(url.toString(), {
+    headers: {
+      "x-requester-id": requesterId.toString()
+    }
+  });
+  if (!res.ok) {
+    throw new Error("Failed to fetch tickets");
+  }
+  return res.json();
+}
