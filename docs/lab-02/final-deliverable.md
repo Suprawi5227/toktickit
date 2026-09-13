@@ -43,7 +43,7 @@
 
 ### 1.2 Kanban Board Evidence
 
-![GitHub Project Kanban Board](../../artifacts/lab-02/screenshots/requester-selector/modal.png)
+![GitHub Project Kanban Board](screenshots/requester-selector/modal.png)
 *GitHub Project Kanban Board showing all Issues in Done column*
 
 * **Project Board URL:** https://github.com/users/Suprawi5227/projects/3
@@ -59,13 +59,13 @@
 
 ### 1.3 Git Commit History
 
-![Git Commit Graph History Part 1](../../artifacts/lab-02/screenshots/git-history/git-graph-1.png)
+![Git Commit Graph History Part 1](screenshots/git-history/git-graph-1.png)
 *Git Commit Graph History Part 1*
 
-![Git Commit Graph History Part 2](../../artifacts/lab-02/screenshots/git-history/git-graph-2.png)
+![Git Commit Graph History Part 2](screenshots/git-history/git-graph-2.png)
 *Git Commit Graph History Part 2*
 
-![Git Commit Graph History Part 3](../../artifacts/lab-02/screenshots/git-history/git-graph-3.png)
+![Git Commit Graph History Part 3](screenshots/git-history/git-graph-3.png)
 *Git Commit Graph History Part 3*
 
 * **Workflow Verification:** The Git graph demonstrates feature branches created for each issue (`feat/*`), merged into `lab2-staging` via Pull Requests with peer review approvals, and final integration merged into `main`.
@@ -74,7 +74,7 @@
 
 ### 1.4 Repository Directory Structure
 
-![IDE Repository Directory Structure](../../artifacts/lab-02/screenshots/ide-tree.png)
+![IDE Repository Directory Structure](screenshots/ide-tree.png)
 *IDE File Tree Repository Directory Structure*
 
 * **Directory Organization:** The repository structure shows all required Lab 2 files, including `docs/lab-02/*.md` specifications and reports, `client/` frontend codebase, `server/` backend API codebase, `client/tests/lab-02/e2e.test.tsx` integration test suite, and `artifacts/lab-02/screenshots/` screenshot assets.
@@ -104,7 +104,7 @@ toktickit/
 │       ├── final-deliverable.md# Full Submission Report
 │       └── final-deliverable.pdf# Printable PDF Submission Report
 ├── artifacts/
-│   └── lab-02/screenshots/     # UI Evidence Screenshots
+│   └── lab-02/screenshots/     # Visual evidence assets (Desktop, Tablet, Mobile)
 ├── README.md
 └── docker-compose.yml
 ```
@@ -114,6 +114,9 @@ toktickit/
 ### 1.5 README.md and .gitignore
 
 #### Content of `README.md`:
+
+![Rendered README.md](screenshots/readme-rendered.png)
+*Content of README.md Rendered View*
 
 ```text
 # TokTickIT - IT Service Desk Application
@@ -154,6 +157,10 @@ TokTickIT is an IT service desk web application built with React, TypeScript, Vi
 ```
 
 #### Content of `.gitignore`:
+
+![Content of .gitignore in IDE](screenshots/gitignore-ide.png)
+*Content of .gitignore in IDE Code Editor*
+
 ```text
 # dependencies
 node_modules/
@@ -344,11 +351,14 @@ The IT department needs an end-user ticketing interface allowing Requesters to r
 
 ### 2.1 Specification Pre-existence Proof
 
-![PR #23 Specification & Test Plan File Additions](../../artifacts/lab-02/screenshots/proof/pr-spec-proof.png)
+![PR #16 Specification & Test Plan File Additions](screenshots/proof/pr-spec-proof.png)
 *PR #16 Specification & Test Plan File Additions Proof*
 
-![PR #23 specification.md Creation Diff](../../artifacts/lab-02/screenshots/proof/pr-diff-proof.png)
+![PR #16 specification.md Creation Diff](screenshots/proof/pr-diff-proof.png)
 *PR #16 specification.md Creation Diff*
+
+![PR #18 Database Schema Implementation](screenshots/proof/pr-db-proof.png)
+*PR #18 Database Schema Implementation updating specification.md*
 
 * **Pre-existence Proof:** PR #16 (Feature/1 Sprint Specifications & Test Plan) was created and merged into `main` before any implementation PRs (PR #18 DB Schema, PR #20 Requester Context, PR #22 Create Ticket API, etc.) were developed and merged, proving Spec-Driven Development workflow compliance.
 
@@ -407,6 +417,9 @@ The testing strategy validates the entire full-stack application across five dis
 
 ### 3.3 Real Terminal Test Execution Output
 
+![Real Terminal Test Execution Output](screenshots/terminal-test.png)
+*Real Terminal Test Execution Output Screenshot*
+
 ```text
 === SERVER VITEST TEST SUITE (14/14 Passed) ===
  RUN  v2.1.9 C:/Users/test0/Downloads/Lab1_Starter_Scaffold/toktickit/server
@@ -427,8 +440,7 @@ The testing strategy validates the entire full-stack application across five dis
  ✓ tests/lab-01/App.test.tsx (3 tests) 128ms
  ✓ tests/lab-02/e2e.test.tsx (5 tests) 1172ms
 
- Test Files  2 passed (2)
-      Tests  8 passed (8)
+ Test Files  8 passed (8)
 
  TOTAL SPRINT TEST METRIC: 22 / 22 Passed (100%)
 ```
@@ -475,73 +487,92 @@ Using the AI coding assistant following the Spec-Driven Development (Spec DD) me
 
 ## Answer Part 5: Development Requester Selection Screen
 
-![Development Requester Selector Modal](../../artifacts/lab-02/screenshots/requester-selector/modal.png)
+![Development Requester Selector Modal](screenshots/requester-selector/modal.png)
 *Figure 5.1: Development Requester Selector Modal*
 
-* **5.1 Modal Screen:** Centered modal on landing requiring selection of an active testing Requester identity.
-* **5.2 Loading State:** Displays animated spinner while fetching active requesters list.
-* **5.3 API Failure State:** Renders red error alert banner with "Retry Connection" action button if backend is offline.
-* **5.4 Empty State:** Disables Continue button and shows amber callout if 0 active requesters exist.
+![Requester Selector Loading State](screenshots/requester-selector/loading.png)
+*Figure 5.2: Requester Selector Loading State*
+
+![Requester Selector API Failure State](screenshots/requester-selector/api-failure.png)
+*Figure 5.3: Requester Selector API Failure State (Connection Error & Retry Button)*
+
+![Requester Selector Empty State](screenshots/requester-selector/empty-state.png)
+*Figure 5.4: Requester Selector Empty State (No Active Requesters & Disabled Continue Button)*
 
 ---
 
 ## Answer Part 6: Working Ticket Screen: Create Mode (10 คะแนน)
 
-![Create Ticket Selected Requester](../../artifacts/lab-02/screenshots/create-ticket/selected-requester.png)
+![Create Ticket Selected Requester](screenshots/create-ticket/selected-requester.png)
 *Figure 6.1: Create Ticket Screen with Logged-in Requester populated*
 
-![Field Validation Errors](../../artifacts/lab-02/screenshots/create-ticket/validation-error.png)
-*Figure 6.2: Field Validation Errors on Submitting Invalid Data*
+![Ticket Confirmation Number](screenshots/create-ticket/confirmation-card.png)
+*Figure 6.2: Ticket Confirmation Number Card (TKT-YYYY-XXXXXX)*
 
-![Initial File Attachment](../../artifacts/lab-02/screenshots/create-ticket/initial-attachment.png)
-*Figure 6.3: Initial File Attachment Dropzone*
+![Dropdown Reference Data](screenshots/create-ticket/dropdown-data.png)
+*Figure 6.3: Dropdown Reference Data (Categories & Related Systems Loaded)*
 
-* **1. Requester field populated correctly:** Displayed at top as read-only badge linked to Requester Context.
-* **2. Reference data loaded:** Populates Category and Related System dropdowns from backend API.
-* **3. Invalid submission:** Shows inline red validation messages under Summary and Description fields.
-* **4. Attachment validation:** Restricts file types to `.jpg, .jpeg, .png, .webp, .pdf` and max 5MB size.
-* **5. Backend/API failure:** Retains user entered text in form fields if submission fails.
+![Field Validation Errors](screenshots/create-ticket/validation-error.png)
+*Figure 6.4: Field Validation Errors on Submitting Invalid Data*
+
+![Initial File Attachment](screenshots/create-ticket/initial-attachment.png)
+*Figure 6.5: Initial File Attachment Dropzone*
+
+![API Failure Retained Form](screenshots/create-ticket/api-failure-retained.png)
+*Figure 6.6: API Failure Retained Form (Preserves User Input Text)*
 
 ---
 
 ## Answer Part 7: Working My Tickets Screen (10 คะแนน)
 
-![My Tickets Requester A](../../artifacts/lab-02/screenshots/my-tickets/requester-a.png)
-*Figure 7.1: My Tickets Screen for Logged-in Requester*
+![My Tickets Requester A](screenshots/my-tickets/requester-a.png)
+*Figure 7.1: My Tickets Screen for Logged-in Requester A*
 
-![Cross Requester Isolation](../../artifacts/lab-02/screenshots/my-tickets/cross-requester-isolation.png)
+![Cross Requester Isolation](screenshots/my-tickets/cross-requester-isolation.png)
 *Figure 7.2: Cross Requester Isolation (Requester B sees 0 tickets of Requester A)*
 
-![Search Feature](../../artifacts/lab-02/screenshots/my-tickets/search.png)
+![Search Feature](screenshots/my-tickets/search.png)
 *Figure 7.3: Search Feature Filtering Tickets*
 
-![Filter Dropdowns](../../artifacts/lab-02/screenshots/my-tickets/filter.png)
+![Filter Dropdowns](screenshots/my-tickets/filter.png)
 *Figure 7.4: Filter Dropdowns for Category, Priority, and Status*
 
-![Sort Feature](../../artifacts/lab-02/screenshots/my-tickets/sort.png)
+![Sort Feature](screenshots/my-tickets/sort.png)
 *Figure 7.5: Sort Feature (Newest / Oldest / Ticket Number)*
 
-![Pagination Controls](../../artifacts/lab-02/screenshots/my-tickets/pagination.png)
+![Pagination Controls](screenshots/my-tickets/pagination.png)
 *Figure 7.6: Pagination Controls (Showing 1 to 10 of N tickets)*
 
-![Empty State](../../artifacts/lab-02/screenshots/my-tickets/empty-state.png)
+![Empty State](screenshots/my-tickets/empty-state.png)
 *Figure 7.7: Empty State (Requester with 0 Tickets)*
 
-![No Results State](../../artifacts/lab-02/screenshots/my-tickets/no-results.png)
+![No Results State](screenshots/my-tickets/no-results.png)
 *Figure 7.8: No Results State (Search/Filter yields 0 matching tickets)*
+
+![Cross Requester Blocked](screenshots/my-tickets/cross-requester-blocked.png)
+*Figure 7.9: Cross Requester Access Blocked Notification*
 
 ---
 
 ## Answer Part 8: Ticket Screen View Mode & Attachments (5 คะแนน)
 
-![Ticket Detail Read Only](../../artifacts/lab-02/screenshots/ticket-detail/read-only.png)
+![Ticket Detail Read Only](screenshots/ticket-detail/read-only.png)
 *Figure 8.1: Ticket Detail Read-Only View*
 
-![Add Attachment](../../artifacts/lab-02/screenshots/ticket-detail/add-attachment.png)
+![Add Attachment](screenshots/ticket-detail/add-attachment.png)
 *Figure 8.2: Add Attachment Section*
 
-![Download Attachment](../../artifacts/lab-02/screenshots/ticket-detail/download-attachment.png)
+![Download Attachment](screenshots/ticket-detail/download-attachment.png)
 *Figure 8.3: Download Attachment Button*
+
+![Soft Remove Modal Prompt](screenshots/ticket-detail/soft-remove-modal.png)
+*Figure 8.4: Soft Remove Confirmation Modal Prompt (Mandatory Removal Reason)*
+
+![Soft Removed Status](screenshots/ticket-detail/soft-removed-status.png)
+*Figure 8.5: Soft Removed Status (Marked as Removed with Reason Metadata)*
+
+![403 Forbidden Blocked](screenshots/ticket-detail/403-forbidden.png)
+*Figure 8.6: Unauthorized Access Blocked (403 Forbidden Response)*
 
 ### 8.1 Cross-Requester Ownership Authorization Evidence (403 Forbidden Response)
 
@@ -585,37 +616,37 @@ it("returns 403 Forbidden when requesting a ticket owned by another requester", 
 
 ### 2. Desktop Viewport (1280px)
 
-![Desktop My Tickets](../../artifacts/lab-02/screenshots/responsive/desktop-my-tickets.png)
+![Desktop My Tickets](screenshots/responsive/desktop-my-tickets.png)
 *Desktop My Tickets Table View*
 
-![Desktop Create Ticket](../../artifacts/lab-02/screenshots/responsive/desktop-create-ticket.png)
+![Desktop Create Ticket](screenshots/responsive/desktop-create-ticket.png)
 *Desktop Create Ticket Form View*
 
-![Desktop Ticket Detail](../../artifacts/lab-02/screenshots/responsive/desktop-ticket-detail.png)
+![Desktop Ticket Detail](screenshots/responsive/desktop-ticket-detail.png)
 *Desktop Ticket Detail View*
 
 ---
 
 ### 3. Tablet Viewport (768px)
 
-![Tablet My Tickets](../../artifacts/lab-02/screenshots/responsive/tablet-my-tickets.png)
+![Tablet My Tickets](screenshots/responsive/tablet-my-tickets.png)
 *Tablet My Tickets View*
 
-![Tablet Create Ticket](../../artifacts/lab-02/screenshots/responsive/tablet-create-ticket.png)
+![Tablet Create Ticket](screenshots/responsive/tablet-create-ticket.png)
 *Tablet Create Ticket View*
 
-![Tablet Ticket Detail](../../artifacts/lab-02/screenshots/responsive/tablet-ticket-detail.png)
+![Tablet Ticket Detail](screenshots/responsive/tablet-ticket-detail.png)
 *Tablet Ticket Detail View*
 
 ---
 
 ### 4. Mobile Viewport (375px)
 
-![Mobile My Tickets](../../artifacts/lab-02/screenshots/responsive/mobile-my-tickets.png)
+![Mobile My Tickets](screenshots/responsive/mobile-my-tickets.png)
 *Mobile My Tickets View*
 
-![Mobile Create Ticket](../../artifacts/lab-02/screenshots/responsive/mobile-create-ticket.png)
+![Mobile Create Ticket](screenshots/responsive/mobile-create-ticket.png)
 *Mobile Create Ticket View*
 
-![Mobile Ticket Detail](../../artifacts/lab-02/screenshots/responsive/mobile-ticket-detail.png)
+![Mobile Ticket Detail](screenshots/responsive/mobile-ticket-detail.png)
 *Mobile Ticket Detail View*

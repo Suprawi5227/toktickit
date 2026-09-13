@@ -5,15 +5,15 @@ import { chromium } from "playwright";
 
 const MD_PATH = "c:/Users/test0/Downloads/Lab1_Starter_Scaffold/toktickit/docs/lab-02/final-deliverable.md";
 const PDF_PATH = "c:/Users/test0/Downloads/Lab1_Starter_Scaffold/toktickit/docs/lab-02/final-deliverable.pdf";
-const REPO_ROOT = "c:/Users/test0/Downloads/Lab1_Starter_Scaffold/toktickit";
+const DOCS_LAB02 = "c:/Users/test0/Downloads/Lab1_Starter_Scaffold/toktickit/docs/lab-02";
 
 async function generatePDF() {
   console.log("Reading Markdown file...");
   let markdownText = fs.readFileSync(MD_PATH, "utf-8");
 
-  // Fix image paths in markdown so they resolve as file:/// URLs
-  markdownText = markdownText.replace(/!\[(.*?)\]\(\.\.\/\.\.\/artifacts\/(.*?)\)/g, (match, alt, imgPath) => {
-    const fullImgPath = path.join(REPO_ROOT, "artifacts", imgPath).replace(/\\/g, "/");
+  // Fix image paths in markdown so they resolve as absolute file:/// URLs for PDF generation
+  markdownText = markdownText.replace(/!\[(.*?)\]\((screenshots\/.*?)\)/g, (match, alt, imgPath) => {
+    const fullImgPath = path.join(DOCS_LAB02, imgPath).replace(/\\/g, "/");
     return `![${alt}](file:///${fullImgPath})`;
   });
 
