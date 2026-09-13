@@ -11,7 +11,7 @@ async function generatePDF() {
   console.log("Reading Markdown file...");
   let markdownText = fs.readFileSync(MD_PATH, "utf-8");
 
-  // Fix image paths in markdown so they resolve as absolute file:/// URLs for PDF generation
+  // Replace relative screenshot paths with file:/// URLs
   markdownText = markdownText.replace(/!\[(.*?)\]\((screenshots\/.*?)\)/g, (match, alt, imgPath) => {
     const fullImgPath = path.join(DOCS_LAB02, imgPath).replace(/\\/g, "/");
     return `![${alt}](file:///${fullImgPath})`;
@@ -27,10 +27,8 @@ async function generatePDF() {
     <meta charset="UTF-8">
     <title>TokTickIT Lab 2 Submission Report</title>
     <style>
-      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-      
       body {
-        font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         color: #1F2937;
         line-height: 1.6;
         font-size: 13px;
@@ -176,7 +174,7 @@ async function generatePDF() {
   });
 
   const page = await browser.newPage();
-  await page.setContent(fullHTML, { waitUntil: "networkidle" });
+  await page.setContent(fullHTML, { waitUntil: "domcontentloaded" });
   await page.waitForTimeout(2000);
 
   console.log("Generating PDF...");
