@@ -114,16 +114,17 @@ toktickit/
 ### 1.5 README.md and .gitignore
 
 #### Content of `README.md`:
-```markdown
+
+```text
 # TokTickIT - IT Service Desk Application
 
 TokTickIT is an IT service desk web application built with React, TypeScript, Vite, Bootstrap, Node.js, Express, Prisma ORM, and PostgreSQL.
 
 ## Tech Stack
-* **Frontend:** React + TypeScript + Vite + Bootstrap 5
-* **Backend:** Node.js + Express + TypeScript
-* **Database & ORM:** PostgreSQL 16 + Prisma ORM
-* **Testing:** Vitest + Supertest + React Testing Library
+* Frontend: React + TypeScript + Vite + Bootstrap 5
+* Backend: Node.js + Express + TypeScript
+* Database & ORM: PostgreSQL 16 + Prisma ORM
+* Testing: Vitest + Supertest + React Testing Library
 
 ## Prerequisites
 * Node.js (v18+)
@@ -132,31 +133,24 @@ TokTickIT is an IT service desk web application built with React, TypeScript, Vi
 
 ## Setup Instructions
 
-### 1. Database Setup
-Start PostgreSQL using Docker Compose:
-```bash
-docker compose up -d db
-```
+1. Database Setup:
+   docker compose up -d db
 
-### 2. Backend Setup (server/)
-```bash
-cd server
-npm install
-cp .env.example .env
-npm run prisma:migrate
-npm run prisma:seed
-npm run dev
-npm test
-```
+2. Backend Setup (server/):
+   cd server
+   npm install
+   cp .env.example .env
+   npm run prisma:migrate
+   npm run prisma:seed
+   npm run dev
+   npm test
 
-### 3. Frontend Setup (client/)
-```bash
-cd client
-npm install
-cp .env.example .env
-npm run dev
-npm test
-```
+3. Frontend Setup (client/):
+   cd client
+   npm install
+   cp .env.example .env
+   npm run dev
+   npm test
 ```
 
 #### Content of `.gitignore`:
