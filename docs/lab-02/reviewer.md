@@ -24,5 +24,19 @@
 รับคำแนะนำทั้งหมดมาแก้ไขโค้ดให้ตรงตาม API Specification แล้ว push commit แก้ไขขึ้น PR เดิมทุกครั้ง
 
 ## Pull Requests I reviewed for my partner
-My comment: [ใส่รายละเอียดการรีวิว PR ของเพื่อน เช่น PR ไหน แนะนำอะไรบ้าง]
-Partner's response: [ใส่การตอบกลับของเพื่อน]
+
+### @natthakamol1130 (ณัฏฐกมล มอญปาน)
+| PR | Title | My review |
+|----|-------|-----------|
+| #26 | [Frontend] Create Ticket Form UI & File Upload | รีวิวเรื่อง Priority Enum Mismatch (CRITICAL → URGENT), Ticket Number Property ไม่ตรง API Contract, และแนะนำให้ปรับ Response format |
+| #28 | [Frontend & Backend] My Tickets Dashboard, Search & Pagination | แนะนำให้เปลี่ยนจาก query param `requesterId` เป็น HTTP Header `x-requester-id` ตาม API Spec, ปรับ Response Payload เพิ่ม `success`, `limit`, `totalItems` |
+| #30 | [Backend & Frontend] Ticket Detail API, Ownership Check & Attachment | แนะนำให้เพิ่ม Ownership Isolation Check (403 Forbidden), เพิ่ม mandatory removal reason สำหรับ DELETE attachment, และปรับ Response format |
+
+Partner's response: เพื่อนรับทราบและแก้ไขโค้ดตามคำแนะนำทั้งหมดเรียบร้อยแล้ว
+
+### @jejaebubu (พัฒนาวดี แสงเงินยอด)
+| PR | Title | My review |
+|----|-------|-----------|
+| #11 | [Docs] Lab 2 Engineering Contract, UI Spec, API Spec & Test Plan | รีวิวเอกสาร Specification ของเพื่อน ตรวจสอบความครบถ้วนของ FR, BR, AC และ API Contract |
+
+Partner's response: เพื่อนรับทราบและปรับปรุงเอกสารตามคำแนะนำเรียบร้อยแล้ว
