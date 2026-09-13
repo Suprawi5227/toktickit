@@ -16,12 +16,19 @@
 | #34 | feat/lab2-issue9-qa-polish | Issue 9: QA & E2E Tests | Approved |
 
 ### Reviewer comments I received:
-- **PR #26:** เพื่อนแจ้งว่า Priority Enum ใช้ค่า "CRITICAL" แต่ Prisma Schema กำหนดเป็น "URGENT" และ property TicketNumber ไม่ตรงกับ API Contract
-- **PR #28:** เพื่อนแนะนำให้เปลี่ยนจาก query param `requesterId` เป็น HTTP Header `x-requester-id` ตาม API Spec และให้เพิ่ม `success: true`, `limit`, `totalItems` ใน Response Payload
-- **PR #30:** เพื่อนแนะนำให้เพิ่ม Ownership Isolation Check (403 Forbidden) และ mandatory removal reason สำหรับ DELETE attachment
+- **PR #16 (Issue 1: Docs):** เพื่อนสอบถามเรื่อง Data Retained after errors (BR-10) และการจำกัดขนาด/ประเภทไฟล์แนบ → ตอบกลับยืนยันแล้ว Approved
+- **PR #18 (Issue 2: DB & API):** เพื่อนสอบถามเรื่อง Zod Validation สำหรับฟอร์ม และ Auto-sequence Ticket Number → ตอบกลับยืนยันแล้ว Approved
+- **PR #20 (Issue 3: Requester UI):** เพื่อนสอบถามเรื่อง Zod Validation และ Ticket Number format → ตอบอธิบายแผนงานแบ่ง Issue แล้ว Approved
+- **PR #22 (Issue 4: Ticket API):** เพื่อน @jejaebubu ตรวจสอบ POST /api/tickets, Zod validation และ Auto-Sequence Ticket Number → Approved
+- **PR #24 (Issue 5: Attachment API):** เพื่อนแนะนำให้เพิ่ม image/webp ใน allowedTypes, เพิ่มการจำกัดจำนวนไฟล์ไม่เกิน 5, และลบไฟล์ทดสอบออกจาก Git → แก้ไขแล้ว Approved
+- **PR #26 (Issue 6: Create Form):** เพื่อนแจ้งว่า Priority Enum ใช้ค่า "CRITICAL" แต่ Prisma Schema กำหนดเป็น "URGENT" และ property TicketNumber ไม่ตรงกับ API Contract → แก้ไขแล้ว Approved
+- **PR #28 (Issue 7: My Tickets):** เพื่อนแนะนำให้เปลี่ยนจาก query param `requesterId` เป็น HTTP Header `x-requester-id` ตาม API Spec และให้เพิ่ม `success: true`, `limit`, `totalItems` ใน Response Payload → แก้ไขแล้ว Approved
+- **PR #30 (Issue 8: Ticket Detail):** เพื่อนแนะนำให้เพิ่ม Ownership Isolation Check (403 Forbidden) และ mandatory removal reason สำหรับ DELETE attachment → แก้ไขแล้ว Approved
+- **PR #34 (Issue 9: QA & E2E):** เพื่อนชมว่า UI Polish และ E2E Test Suite ครอบคลุมครบ 5 เคส → Approved โดยไม่มีแก้ไขเพิ่มเติม
 
 ### How I responded:
 รับคำแนะนำทั้งหมดมาแก้ไขโค้ดให้ตรงตาม API Specification แล้ว push commit แก้ไขขึ้น PR เดิมทุกครั้ง
+
 
 ## Pull Requests I reviewed for my partner
 
