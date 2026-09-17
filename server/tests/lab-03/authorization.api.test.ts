@@ -20,7 +20,8 @@ describe("Lab 3 Authorization API", () => {
       .get("/api/tickets/queue?search=TXT-2025-001234")
       .set("Cookie", adminLogin.headers["set-cookie"]);
 
-    const targetTicket = queueRes.body.data[0];
+    const targetTicket = queueRes.body.data?.[0];
+    expect(targetTicket).toBeDefined();
 
     const res = await request(app)
       .get(`/api/tickets/${targetTicket.id}`)
