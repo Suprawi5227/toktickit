@@ -1,42 +1,56 @@
-# TokTickIT
+# TokTickIT - IT Service Desk & Management System
 
-TokTickIT is the Lab 1 starter for CPE334. It proves the full-stack works as one vertical slice:
+TokTickIT is an IT Support Ticketing and User Management system built for CPE334 (Introduction to Software Engineering in the Age of AI Agents).
 
 React UI -> Express REST API -> Prisma ORM -> PostgreSQL
 
-## Tech stack
+## Tech Stack
 
-*   **Frontend:** React, TypeScript, Vite, Bootstrap
-*   **Backend:** Node.js, Express, TypeScript
-*   **Database:** PostgreSQL, Prisma
-*   **Testing:** Vitest, Supertest
+* **Frontend:** React, TypeScript, Vite, Bootstrap, Zen Green Design Language
+* **Backend:** Node.js, Express, TypeScript, JWT & Cookie Session Authentication, bcrypt
+* **Database:** PostgreSQL, Prisma ORM
+* **Testing:** Vitest, Supertest, Playwright
 
-## Repository structure
+## Repository Structure
 
 ```text
 toktickit/
   client/
-    index.html
-    public/
     src/
+      components/
+        LoginScreen.tsx
+        StaffTicketQueue.tsx
+        StaffTicketDetail.tsx
+        UserManagement.tsx
+      contexts/
+        AuthContext.tsx
   server/
     prisma/
+      schema.prisma
+      seed.ts
+    src/
+      middleware/
+        auth.ts
+      routes/
+        auth.routes.ts
+        staff.routes.ts
+        admin.routes.ts
     tests/
+      lab-03/
   docs/
     lab-01/
-      lab1_labsheet.pdf
-      ai_use.md
+    lab-02/
+    lab-03/
+      specification.md
+      ui-spec.md
+      api-spec.md
+      tests.md
       reviewer.md
+      ai-use.md
   README.md
 ```
 
-## Project areas
-
-*   `client/` contains the React + Vite frontend.
-*   `server/` contains the Express + Prisma backend work.
-*   `docs/lab-01/` stores the lab sheet and submission documents.
-
-## Local setup
+## Local Setup
 
 ### 1) Install dependencies
 
@@ -48,41 +62,40 @@ cd ../server
 npm install
 ```
 
-### 2) Configure the backend
-
-Create `server/.env` and set the database connection string required by Prisma:
+### 2) Database Setup & Migration
 
 ```bash
-DATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DATABASE"
+cd server
+npx prisma db push --accept-data-loss
+npx prisma db seed
 ```
 
-### 3) Run the frontend
+### 3) Run Development Server
 
 ```bash
+# Backend API (Port 3000)
+cd server
+npm run dev
+
+# Frontend App (Port 5173)
 cd client
 npm run dev
 ```
 
-### 4) Run checks
+### 4) Run Lab 3 Tests
 
-The client already defines these scripts:
+```bash
+# Server API & Auth Tests
+cd server
+npx vitest run tests/lab-03/
 
-*   `npm run dev`
-*   `npm run build`
-*   `npm run lint`
-*   `npm run preview`
+# Client UI Tests
+cd client
+npx vitest run tests/lab-03/
+```
 
-Backend scripts and lab tests should be added under `server/` as the lab is implemented.
+## Lab 3 Scope Summary
 
-## Lab documentation
-
-*   `docs/lab-01/ai_use.md` records AI usage and prompt notes.
-*   `docs/lab-01/reviewer.md` records peer review details.
-*   `server/tests/lab-01/` is reserved for Lab 1 API/UI test cases.
-
-## Lab 1 acceptance summary
-
-*   `GET /api/health` returns `200` with `{"status": "ok", "service": "TokTickIT API"}`
-*   `GET /api/categories` returns the seeded categories in a stable order
-*   the UI shows loading, success, and failure states
-*   the repository keeps the Lab 1 workflow, docs, and tests organized
+* **Authentication & Authorization:** Email + Password login, mandatory first-login password change, Role-Based Access Control (Requester, IT Staff, Administrator).
+* **IT Staff Workflow:** Ticket Queue with search, filtering, sorting, pagination, ticket claiming, reassigning, IT Priority, status transitions, Public Comments, and Internal Notes.
+* **Administrator User Management:** Minimalist User Management screen to list, search, create, edit, reset initial password, and enforce safety rules (prevent self-deactivation & last admin removal).
