@@ -1,5 +1,6 @@
 import express, { Request, Response } from "express";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 import { getPrisma } from "./prisma.js";
 import { CreateTicketSchema } from "./schemas/ticket.schema.js";
 import { ZodError } from "zod";
@@ -7,6 +8,10 @@ import multer from "multer";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { authRouter } from "./routes/auth.routes.js";
+import { staffRouter } from "./routes/staff.routes.js";
+import { adminRouter } from "./routes/admin.routes.js";
+import { actionsTakenRouter } from "./routes/actions-taken.routes.js";
 // getPrisma() is your lazy database handle. Call it INSIDE a route when you
 // need the DB (Issue 4). It is intentionally unused until then.
 void getPrisma;
@@ -17,6 +22,7 @@ export const app = express();
 
 app.use(cors());          // already wired: lets the Vite dev server call this API
 app.use(express.json());
+app.use(cookieParser());
 
 // ---------------------------------------------------------------------------
 // Multer Configuration
@@ -426,5 +432,13 @@ app.delete("/api/attachments/:id", async (req: Request, res: Response): Promise<
     res.status(500).json({ error: "Internal server error" });
   }
 });
+
+// ---------------------------------------------------------------------------
+// Lab 3 & 4 Routers
+// ---------------------------------------------------------------------------
+app.use("/api/auth", authRouter);
+app.use("/api/tickets/:id/actions-taken", actionsTakenRouter);
+app.use("/api/tickets", staffRouter);
+app.use("/api/admin", adminRouter);
 
 export default app;
