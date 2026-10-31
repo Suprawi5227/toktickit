@@ -125,8 +125,51 @@
 
 ---
 
-## 3. Approval Sign-off
+## 3. Approval Sign-off (PR #66)
 - [x] All Feedback items from Rounds 1, 2, and 3 fully addressed with concrete document revisions.
 - [x] Specifications conform to Lab 4 Handout Sections 1 to 9.
 - [x] Traceable evidence recorded for Sprint 4 Final PDF Report.
 - **Decision**: **APPROVED & SIGNED-OFF** for Sprint 4 Engineering Contract.
+
+---
+
+## 4. Peer Review Round 4 (PR #67: Sprint 4 Test Plan & Scaffolding)
+
+### 🔍 Feedback 14: BR-14 (Inactive User Safety) and FR-12 (Sprint Regression)
+- **Peer Reviewer Comment (`@natthakamol1130`)**:
+  > *"ใน specification.md มีระบุกฎ BR-14 (การปฏิเสธ 400 Bad Request เมื่อมอบหมายงานหรือบันทึก Action Taken โดยบัญชีที่ถูกระงับ isActive = false) และ FR-12 (Full Sprint Regression สำหรับฟีเจอร์ Lab 1–3) แนะนำให้เพิ่มเคสทดสอบสำหรับ BR-14 ลงในตาราง docs/lab-04/tests.md (และในไฟล์ actions-taken.api.test.ts / ticket-workflow.api.test.ts) รวมถึงเพิ่มแถวสรุป Regression Test (REG-01..REG-03) ในตารางด้วยนะคะ"*
+- **Author Response & Action Taken (`@Suprawi5227`)**:
+  > *"ขอบคุณมากครับที่ช่วยตรวจทานความสอดคล้องกับ BR-14 และ FR-12! ได้ดำเนินการเพิ่มเคส `API-10` ใน `actions-taken.api.test.ts`, `API-16` ใน `ticket-workflow.api.test.ts` เพื่อดักจับ Inactive User Safety (HTTP 400) และเพิ่มแถว `REG-01`, `REG-02`, `REG-03` สรุปชุด Full Sprint Regression ของ Lab 1-3 ลงในตาราง `docs/lab-04/tests.md` เรียบร้อยแล้วครับ"*
+
+---
+
+### 🔍 Feedback 15: Unit Layer Harmonization
+- **Peer Reviewer Comment (`@natthakamol1130`)**:
+  > *"ใน Section 1 และ Checklist ระบุว่าแผนการทดสอบครอบคลุมทั้ง 4 เลเยอร์ (Unit, API, UI, E2E) แต่ในตาราง Section 2 คอลัมน์ Type ตอนนี้มีเฉพาะ API, UI และ E2E ค่ะ แนะนำให้เพิ่มเคส Unit (เช่น ทดสอบ validation logic ของ followUpRequired -> followUpNote และฟังก์ชันตรวจสอบ State Machine transition) หรือปรับคอลัมน์ Type ในตารางให้ระบุ Unit / API เพื่อให้สอดคล้องกันค่ะ"*
+- **Author Response & Action Taken (`@Suprawi5227`)**:
+  > *"ตรงจุดนี้เห็นด้วยเป็นอย่างยิ่งครับ! ได้สร้างไฟล์ Unit Test ใหม่ `server/tests/lab-04/unit-validators.test.ts` พร้อมกำหนดเคส `UNIT-01` (ทดสอบ validation logic ของ conditional followUpNote ตาม AC-02, BR-04) และ `UNIT-02` (ทดสอบ state transition helper ตาม BR-07) พร้อมเพิ่มประเภท 'Unit' ในตารางแผนการทดสอบเรียบร้อยแล้วครับ"*
+
+---
+
+### 🔍 Feedback 16: Test ID Linkage across Scaffolding Files
+- **Peer Reviewer Comment (`@natthakamol1130`)**:
+  > *"ในไฟล์ staff-dashboard.api.test.ts มีเคส it.todo สำหรับ Admin (userSummary ตาม FR-11) และเคส 403 Forbidden รวมถึงใน requester-dashboard.api.test.ts มีเคส 401 Unauthorized และใน ActionsTaken.test.tsx / StaffDashboard.test.tsx / RequesterDashboard.test.tsx มี it.todo ที่ยังไม่มีรหัส UI-xx หรือ API-xx กำกับ แนะนำให้ใส่รหัส Test ID หรืออัปเดตคำอธิบายในตาราง docs/lab-04/tests.md ให้ครอบคลุมทุก it.todo นะคะ"*
+- **Author Response & Action Taken (`@Suprawi5227`)**:
+  > *"ได้ดำเนินการกำหนดรหัส Test ID ให้กับทุก `it.todo` ในทุกไฟล์อย่างเป็นระบบแบบ 1:1 เรียบร้อยแล้วครับ (API-01 ถึง API-22, UI-01 ถึง UI-14, E2E-01 ถึง E2E-06) ทำให้สามารถ Trace รหัสทุกตัวจากเอกสาร `tests.md` สู่โค้ดทดสอบจริงได้อย่างแม่นยำ 100% ครับ"*
+
+---
+
+### 🔍 Feedback 17: Dashboard Metric Cards Alignment
+- **Peer Reviewer Comment (`@natthakamol1130`)**:
+  > *"ใน api-spec.md (Section 2.1 & 2.2) และ specification.md (AC-11, FR-10) มีฟิลด์ unassignedCount ของฝั่ง Staff และ waitingOnMeCount (Tickets waiting on the requester) ของฝั่ง Requester แนะนำให้ปรับข้อความใน StaffDashboard.test.tsx (UI-06) และ RequesterDashboard.test.tsx (UI-07) ให้ครอบคลุม metric ดังกล่าวให้ตรงกับ API response ค่ะ"*
+- **Author Response & Action Taken (`@Suprawi5227`)**:
+  > *"ปรับแก้เรียบร้อยแล้วครับ! ใน `UI-09` (`StaffDashboard.test.tsx`) ได้ระบุการตรวจวัดการ์ด Unassigned (`unassignedCount`) ร่วมกับสถานะ Open, In Progress, Waiting, Assigned to Me และใน `UI-12` (`RequesterDashboard.test.tsx`) ได้ระบุการตรวจวัดการ์ด Waiting on Me (`waitingOnMeCount`) ควบคู่กับ Open, Resolved, Closed ให้ตรงกับ API Response Schema ตาม `api-spec.md` ครบถ้วนครับ"*
+
+---
+
+### 🔍 Feedback 18: Total Test Cases Count Correction in PR Overview
+- **Peer Reviewer Comment (`@natthakamol1130`)**:
+  > *"ในคำอธิบาย PR เขียนว่า 24 planned test cases (API-01 to API-17, UI-01 to UI-07, E2E-01 to E2E-03) ซึ่งถ้าบวกกัน (17 + 7 + 3) จะได้ 27 เคส ค่ะ ฝากแก้ตัวเลขในคำอธิบาย PR หรืออัปเดตตามจำนวนเคสล่าสุดด้วยนะคะ ขอบคุณมากค่ะ"*
+- **Author Response & Action Taken (`@Suprawi5227`)**:
+  > *"ขอบคุณที่ทักท้วงเรื่องตัวเลขครับ! ได้อัปเดตตัวเลขรวมใน PR Overview และเอกสารให้ตรงกับตารางใหม่ทั้งหมดอย่างถูกต้อง: รวมทั้งสิ้น 47 Planned Test Cases ประกอบด้วย Unit (2), API (22), UI (14), E2E (6) และ Sprint Regression (3) ครับ"*
+
