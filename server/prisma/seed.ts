@@ -105,7 +105,8 @@ export async function seedTickets(
   users: Record<string, number>,
   categories: Record<string, number>,
   systems: Record<string, number>
-) {
+): Promise<Record<string, number>> {
+  const ticketMap: Record<string, number> = {};
   const ticketsData = [
     {
       ticketNumber: "TXT-2025-001234",
@@ -118,6 +119,7 @@ export async function seedTickets(
       ownerEmail: "kevin.patel@toktickit.com",
       categoryName: "Hardware",
       systemName: "Corporate Laptop",
+      requesterResolvedInd: false,
     },
     {
       ticketNumber: "TXT-2025-001233",
@@ -130,6 +132,7 @@ export async function seedTickets(
       ownerEmail: null,
       categoryName: "Network",
       systemName: "VPN",
+      requesterResolvedInd: false,
     },
     {
       ticketNumber: "TXT-2025-001232",
@@ -137,11 +140,12 @@ export async function seedTickets(
       description: "Outlook mobile app on my phone stopped receiving new emails today.",
       requestedPriority: Priority.MEDIUM,
       itPriority: ITPriority.MEDIUM,
-      status: TicketStatus.IN_PROGRESS,
+      status: TicketStatus.WAITING_FOR_REQUESTER,
       requesterEmail: "sarah.johnson@example.com",
       ownerEmail: "lisa.martinez@toktickit.com",
       categoryName: "Software",
       systemName: "Email",
+      requesterResolvedInd: false,
     },
     {
       ticketNumber: "TXT-2025-001231",
@@ -154,6 +158,46 @@ export async function seedTickets(
       ownerEmail: null,
       categoryName: "Account and Access",
       systemName: "LEB2 App",
+      requesterResolvedInd: false,
+    },
+    {
+      ticketNumber: "TXT-2025-001230",
+      summary: "Intermittent Wi-Fi disconnects in Science building",
+      description: "Wi-Fi connection drops every 15 minutes when sitting in Room 402.",
+      requestedPriority: Priority.HIGH,
+      itPriority: ITPriority.HIGH,
+      status: TicketStatus.RESOLVED,
+      requesterEmail: "jennifer.anderson@example.com",
+      ownerEmail: "kevin.patel@toktickit.com",
+      categoryName: "Network",
+      systemName: "Campus Wi-Fi",
+      requesterResolvedInd: true,
+    },
+    {
+      ticketNumber: "TXT-2025-001229",
+      summary: "Software license activation for grading tool",
+      description: "Need license key activated for the grade submission application.",
+      requestedPriority: Priority.MEDIUM,
+      itPriority: ITPriority.LOW,
+      status: TicketStatus.CLOSED,
+      requesterEmail: "michael.brown@example.com",
+      ownerEmail: "lisa.martinez@toktickit.com",
+      categoryName: "Software",
+      systemName: "Grade Submission App",
+      requesterResolvedInd: true,
+    },
+    {
+      ticketNumber: "TXT-2025-001228",
+      summary: "Department printer recurring jam on tray 2",
+      description: "Printer jammed again after previous cleanup. Paper sensor may be failing.",
+      requestedPriority: Priority.HIGH,
+      itPriority: ITPriority.HIGH,
+      status: TicketStatus.REOPENED,
+      requesterEmail: "sarah.johnson@example.com",
+      ownerEmail: "robert.wilson@toktickit.com",
+      categoryName: "Hardware",
+      systemName: "Printer",
+      requesterResolvedInd: false,
     },
   ];
 
@@ -175,6 +219,7 @@ export async function seedTickets(
         ownerId,
         categoryId,
         relatedSystemId,
+        requesterResolvedInd: t.requesterResolvedInd,
       },
       create: {
         ticketNumber: t.ticketNumber,
@@ -187,8 +232,11 @@ export async function seedTickets(
         ownerId,
         categoryId,
         relatedSystemId,
+        requesterResolvedInd: t.requesterResolvedInd,
       },
     });
+
+    ticketMap[t.ticketNumber] = ticket.id;
 
     // Seed comments & notes for the first ticket
     if (t.ticketNumber === "TXT-2025-001234") {
@@ -224,6 +272,97 @@ export async function seedTickets(
       }
     }
   }
+
+  return ticketMap;
+}
+
+export async function seedActionsTaken(
+  prisma: PrismaClient,
+  ticketMap: Record<string, number>,
+  users: Record<string, number>
+) {
+  // Clean existing actions for seeded tickets to guarantee idempotent runs
+  for (const ticketId of Object.values(ticketMap)) {
+    await prisma.actionTaken.deleteMany({ where: { ticketId } });
+  }
+
+  const actionsData = [
+    // TXT-2025-001234 (Multi-action with collaborative performers)
+    {
+      ticketId: ticketMap["TXT-2025-001234"],
+      actionDateTime: new Date("2026-10-31T09:30:00.000Z"),
+      description: "Ran full hardware diagnostic and battery degradation assessment.",
+      result: "Battery health is at 42% capacity with 850 cycles; replacement unit required.",
+      performedById: users["kevin.patel@toktickit.com"],
+      followUpRequired: true,
+      followUpNote: "Order replacement battery pack and schedule hardware servicing.",
+      attachmentNotes: "Diagnostic logs attached to ticket detail.",
+    },
+    {
+      ticketId: ticketMap["TXT-2025-001234"],
+      actionDateTime: new Date("2026-10-31T11:15:00.000Z"),
+      description: "Retrieved approved battery stock from IT inventory and benchmarked cell voltages.",
+      result: "Replacement battery pack staged and verified; ready for user drop-off.",
+      performedById: users["robert.wilson@toktickit.com"], // Collaborative performer
+      followUpRequired: false,
+      followUpNote: null,
+      attachmentNotes: null,
+    },
+
+    // TXT-2025-001232 (Single action with follow-up note)
+    {
+      ticketId: ticketMap["TXT-2025-001232"],
+      actionDateTime: new Date("2026-10-31T10:00:00.000Z"),
+      description: "Revoked stale ActiveSync mobile device profile and generated new exchange auth token.",
+      result: "User instructed to re-authenticate mobile Outlook client.",
+      performedById: users["lisa.martinez@toktickit.com"],
+      followUpRequired: true,
+      followUpNote: "Verify sync status with user after 24 hours.",
+      attachmentNotes: null,
+    },
+
+    // TXT-2025-001230 (Resolved ticket single action)
+    {
+      ticketId: ticketMap["TXT-2025-001230"],
+      actionDateTime: new Date("2026-10-30T14:20:00.000Z"),
+      description: "Rebooted access point AP-SCI-402 and updated radio transmit power.",
+      result: "Signal strength stable at -55 dBm with zero packet drop over 30-minute stress test.",
+      performedById: users["kevin.patel@toktickit.com"],
+      followUpRequired: false,
+      followUpNote: null,
+      attachmentNotes: null,
+    },
+
+    // TXT-2025-001229 (Closed ticket single action)
+    {
+      ticketId: ticketMap["TXT-2025-001229"],
+      actionDateTime: new Date("2026-10-29T16:00:00.000Z"),
+      description: "Provisioned academic software license key and validated remote workstation activation.",
+      result: "License activated successfully; student grading submission module functional.",
+      performedById: users["lisa.martinez@toktickit.com"],
+      followUpRequired: false,
+      followUpNote: null,
+      attachmentNotes: null,
+    },
+
+    // TXT-2025-001228 (Reopened ticket single action with follow-up)
+    {
+      ticketId: ticketMap["TXT-2025-001228"],
+      actionDateTime: new Date("2026-10-31T13:45:00.000Z"),
+      description: "Disassembled Tray 2 pickup assembly and inspected optical sensor.",
+      result: "Roller rubber worn smooth causing slippage on heavy bond paper.",
+      performedById: users["robert.wilson@toktickit.com"],
+      followUpRequired: true,
+      followUpNote: "Expedite pickup roller replacement part from supplier.",
+      attachmentNotes: "Hardware photo taken.",
+    },
+
+    // Note: TXT-2025-001233 and TXT-2025-001231 intentionally have ZERO actions taken (tests empty state).
+  ];
+
+  await prisma.actionTaken.createMany({
+    data: actionsData,
+  });
 }
 
 async function main() {
@@ -231,8 +370,9 @@ async function main() {
   const categories = await seedCategories(prisma);
   const systems = await seedRelatedSystems(prisma);
   const users = await seedUsers(prisma);
-  await seedTickets(prisma, users, categories, systems);
-  console.log("Database seeded successfully for Lab 3.");
+  const ticketMap = await seedTickets(prisma, users, categories, systems);
+  await seedActionsTaken(prisma, ticketMap, users);
+  console.log("Database seeded successfully for Lab 4.");
 }
 
 const isDirectRun = process.argv[1] === fileURLToPath(import.meta.url);
