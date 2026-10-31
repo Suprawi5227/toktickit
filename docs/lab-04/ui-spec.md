@@ -19,6 +19,7 @@ Lab 4 strictly preserves and extends the **Zen Green** design language establish
   - `Waiting for Requester`: Warning badge (`#FFC107`, text `#664D03`, bg `#FFF8E1`)
   - `Resolved`: Primary Green badge (`#006B3C`, bg `#EAF6EF`)
   - `Closed`: Gray badge (`#6C757D`, bg `#F8F9FA`)
+  - `Reopened`: Teal badge (`#20C997`, bg `#E6FAF4`)
   - `Cancelled`: Dark red badge (`#DC3545`, bg `#F8D7DA`)
 
 ---
@@ -162,6 +163,16 @@ Added to the existing IT Staff Ticket Detail page below the Ticket Summary and a
 - Dropdown select or action button group displaying **only valid transitions** according to BR-07.
 - Forbidden or invalid transitions are disabled or excluded from the options.
 - If a ticket update triggers a concurrency conflict (HTTP 409), a prominent alert banner prompts: *"This ticket was recently updated by another user. Please refresh the page to view the latest status before making changes."* with a "Refresh Ticket" button.
+
+#### Requester Advisory Resolution Control
+- Requesters viewing their own active tickets see a prominent secondary action button: **"Problem Appears Resolved"**.
+- Clicking opens a concise modal allowing the Requester to optionally submit a note (e.g. *"Printer is working properly now"*).
+- Submitting appends an automated Public Comment and sets `requesterResolvedInd = true`, while keeping status in its current state per BR-08 and BR-09.
+
+#### IT Staff Advisory Resolution Notice Banner
+- When `ticket.requesterResolvedInd === true` on an open/in-progress ticket, the IT Staff Ticket Detail prominently displays an accessible notification banner:
+  > 💡 **Requester Indication**: The requester has indicated that the problem appears resolved. Please inspect work, verify resolution, and formally transition the ticket status to **Resolved**.
+- Includes a direct shortcut button **"Formally Resolve Ticket"** which opens the status update confirmation.
 
 ---
 

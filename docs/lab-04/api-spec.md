@@ -85,7 +85,8 @@
           "followUpRequired": false,
           "followUpNote": null,
           "attachmentNotes": null,
-          "createdAt": "2026-10-31T14:32:10.000Z"
+          "createdAt": "2026-10-31T14:32:10.000Z",
+          "updatedAt": "2026-10-31T14:32:10.000Z"
         }
       ]
     }
@@ -292,4 +293,6 @@
   - Does NOT transition ticket status to `RESOLVED` (enforces Resolution Gate BR-08 and BR-09).
 - **Responses**:
   - `200 OK`: Returns updated ticket summary.
-  - `403 Forbidden`: Not the ticket owner.
+  - `401 Unauthorized`: Not authenticated.
+  - `403 Forbidden`: Not the ticket owner or unauthorized role.
+  - `404 Not Found`: Ticket does not exist.

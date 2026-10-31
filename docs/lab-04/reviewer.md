@@ -93,8 +93,40 @@
 
 ---
 
+### 🔍 Feedback 10: `updatedAt` in `GET /tickets/:id/actions-taken`
+- **Peer Reviewer Comment (`@natthakamol1130`)**:
+  > *"updatedAt ใน GET /tickets/:id/actions-taken (api-spec.md Section 1.2): ในตัวอย่าง JSON Response ของ List Actions Taken ตอนนี้มีแค่ createdAt แนะนำให้เพิ่ม "updatedAt": "2026-10-31T14:32:10.000Z" เข้าไปด้วยนะคะ เพื่อให้ฝั่ง Frontend มีค่า timestamp นำไปส่งเป็น lastUpdatedAt ตอนกด Edit (PATCH ใน Section 1.3) ได้เลยค่ะ"*
+- **Author Response & Action Taken (`@Suprawi5227`)**:
+  > *"จุดนี้สำคัญต่อ Frontend จริงๆ ครับ! ได้เพิ่ม `"updatedAt": "2026-10-31T14:32:10.000Z"` ในตัวอย่าง JSON Response ของ `GET /tickets/:id/actions-taken` (Section 1.2 ใน `docs/lab-04/api-spec.md`) เรียบร้อยแล้ว เพื่อให้ Frontend นำค่าไปใช้เป็น optimistic lock timestamp ในการ PATCH ได้ทันทีครับ"*
+
+---
+
+### 🔍 Feedback 11: Definition of Done Numbering Synchronization
+- **Peer Reviewer Comment (`@natthakamol1130`)**:
+  > *"อัปเดตเลขข้อ BR ใน Definition of Done (specification.md Section 10): ใน Section 5 มีการเพิ่ม BR-16 เข้ามาแล้ว แนะนำปรับข้อความใน Section 10 บรรทัดแรกจาก (BR-01 to BR-15) เป็น (BR-01 to BR-16) ให้ตรงกันนะคะ"*
+- **Author Response & Action Taken (`@Suprawi5227`)**:
+  > *"ตรวจทานได้ละเอียดรอบคอบมากครับ! ได้ปรับปรุงบรรทัดแรกของ Definition of Done ใน `docs/lab-04/specification.md` Section 10 ให้ระบุเป็น `(BR-01 to BR-16)` ให้สอดคล้องตรงกันสมบูรณ์แล้วครับ"*
+
+---
+
+### 🔍 Feedback 12: Reopened Badge & Advisory Workflow UI
+- **Peer Reviewer Comment (`@natthakamol1130`)**:
+  > *"เพิ่มเติมรายละเอียดสถานะ Reopened และ Advisory UI ใน ui-spec.md: ใน Section 1 (Status Semantics) แนะนำเพิ่มสี Badge ของสถานะ Reopened ให้ครบตาม State Machine ค่ะ ใน Section 3.4 อาจโน้ตเพิ่มสั้นๆ เกี่ยวกับปุ่ม "Problem Appears Resolved" สำหรับ Requester และแถบ Advisory Banner ที่แสดงให้ IT Staff เห็นเมื่อ requesterResolvedInd = true เพื่อให้สอดคล้องกับ BR-09 ค่ะ"*
+- **Author Response & Action Taken (`@Suprawi5227`)**:
+  > *"เพิ่มเติมครบถ้วนทั้ง 2 ส่วนใน `docs/lab-04/ui-spec.md` แล้วครับ: (1) เพิ่มสี Badge สำหรับสถานะ `Reopened` (Teal `#20C997`, bg `#E6FAF4`) ใน Section 1 และ (2) เพิ่มรายละเอียดปุ่มกดแจ้งแก้ปัญหาเสร็จสิ้นสำหรับ Requester พร้อมการแสดง Advisory Banner สีเขียวอ่อนสำหรับ IT Staff เมื่อ `requesterResolvedInd = true` พร้อมปุ่มกด Formally Resolve ใน Section 3.4 ครับ"*
+
+---
+
+### 🔍 Feedback 13: Standard Status Codes for Indicate-Resolved
+- **Peer Reviewer Comment (`@natthakamol1130`)**:
+  > *"Status Codes ใน PATCH /tickets/:id/indicate-resolved (api-spec.md Section 3.2): แนะนำเพิ่ม 401 Unauthorized และ 404 Not Found ในส่วน Responses ให้ครบเหมือน Endpoint อื่นๆ นะคะ"*
+- **Author Response & Action Taken (`@Suprawi5227`)**:
+  > *"เสริม `401 Unauthorized` และ `404 Not Found` ใน Responses ของ Section 3.2 ใน `docs/lab-04/api-spec.md` เรียบร้อยแล้ว เพื่อให้ครอบคลุมตามมาตรฐาน RESTful Error Handling อย่างสมบูรณ์ครับ"*
+
+---
+
 ## 3. Approval Sign-off
-- [x] All Feedback items from Round 1 and Round 2 addressed with concrete document revisions.
+- [x] All Feedback items from Rounds 1, 2, and 3 fully addressed with concrete document revisions.
 - [x] Specifications conform to Lab 4 Handout Sections 1 to 9.
 - [x] Traceable evidence recorded for Sprint 4 Final PDF Report.
 - **Decision**: **APPROVED & SIGNED-OFF** for Sprint 4 Engineering Contract.

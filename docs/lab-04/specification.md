@@ -191,7 +191,7 @@ model ActionTaken {
 ---
 
 ## 10. Definition of Done (DoD)
-- [ ] All Functional Requirements (FR-01 to FR-12) and Business Rules (BR-01 to BR-15) implemented.
+- [ ] All Functional Requirements (FR-01 to FR-12) and Business Rules (BR-01 to BR-16) implemented.
 - [ ] Prisma schema migration and idempotent seed verified with zero, one, and multi-action tickets.
 - [ ] 100% automated test pass rate for all unit, API integration, UI component, and Playwright E2E suites.
 - [ ] Server-side authorization and resolution gate verified via automated negative tests.
