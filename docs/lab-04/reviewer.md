@@ -173,3 +173,30 @@
 - **Author Response & Action Taken (`@Suprawi5227`)**:
   > *"ขอบคุณที่ทักท้วงเรื่องตัวเลขครับ! ได้อัปเดตตัวเลขรวมใน PR Overview และเอกสารให้ตรงกับตารางใหม่ทั้งหมดอย่างถูกต้อง: รวมทั้งสิ้น 47 Planned Test Cases ประกอบด้วย Unit (2), API (22), UI (14), E2E (6) และ Sprint Regression (3) ครับ"*
 
+---
+
+## 5. Peer Review Round 5 (PR #68: Database Schema, Migration & Seed for Actions Taken)
+
+### 🔍 Feedback 19: Advisory Resolution Seed Data on Unresolved Ticket
+- **Peer Reviewer Comment (`@natthakamol1130`)**:
+  > *"เพิ่มตัวอย่างตั๋วสถานะ Advisory Resolution (requesterResolvedInd: true บนตั๋วที่ยังไม่ RESOLVED): ตอนนี้ตั๋วที่ตั้งค่า requesterResolvedInd: true ใน seed.ts มีเฉพาะใบที่เป็นสถานะ RESOLVED (TXT-2025-001230) และ CLOSED (TXT-2025-001229) ค่ะ แนะนำให้ปรับตั๋วที่ยังเปิดอยู่สัก 1 ใบ (เช่น TXT-2025-001232 ที่เป็นสถานะ WAITING_FOR_REQUESTER หรือเพิ่มตั๋ว IN_PROGRESS) ให้มี requesterResolvedInd: true เพื่อใช้ทดสอบและแสดงผล IT Staff Advisory Resolution Banner ตาม BR-09 และ ui-spec.md Section 3.4 ได้ทันทีหลังรัน seed นะคะ"*
+- **Author Response & Action Taken (`@Suprawi5227`)**:
+  > *"ข้อเสนอแนะนี้ช่วยให้การทดสอบ Advisory Resolution Banner บน UI ทำได้ง่ายขึ้นมากเลยครับ! ได้ปรับให้ตั๋ว `TXT-2025-001232` (สถานะ `WAITING_FOR_REQUESTER`) มีค่า `requesterResolvedInd: true` ใน `server/prisma/seed.ts` เรียบร้อยแล้ว ทำให้สามารถทดสอบการแสดงผลแบนเนอร์แจ้งเตือน IT Staff และปุ่มชอร์ตคัต 'Formally Resolve Ticket' ได้ทันทีหลังรัน seed ตาม BR-09 ครับ"*
+
+---
+
+### 🔍 Feedback 20: Comprehensive `ITPriority.URGENT` Representation
+- **Peer Reviewer Comment (`@natthakamol1130`)**:
+  > *"เพิ่มความครอบคลุมของ ITPriority.URGENT ในข้อมูลตั๋ว (ticketsData): ตอนนี้ตั๋วทั้ง 7 ใบใน seed.ts มีระดับความสำคัญเป็น HIGH, MEDIUM, และ LOW แต่ยังไม่มีใบที่เป็น URGENT ค่ะ แนะนำให้ปรับตั๋วสัก 1 ใบ (เช่น TXT-2025-001233 หรือ TXT-2025-001228) ให้ใช้ itPriority: ITPriority.URGENT เพื่อให้ข้อมูลบน Staff Dashboard (priorityBreakdown.urgent ตาม api-spec.md Section 2.1 และ FR-09) มีครบทั้ง 4 ระดับความสำคัญค่ะ"*
+- **Author Response & Action Taken (`@Suprawi5227`)**:
+  > *"ปรับเปลี่ยนเรียบร้อยแล้วครับ! ได้ปรับตั๋ว `TXT-2025-001228` (Printer Jam) ให้มีระดับความสำคัญเป็น `ITPriority.URGENT` ทำให้ข้อมูลในระบบมีครบทั้ง 4 ระดับความสำคัญ (LOW, MEDIUM, HIGH, URGENT) สำหรับรองรับการทดสอบ Metric Breakdown บน Staff Dashboard ตาม FR-09 ครับ"*
+
+---
+
+### 🔍 Feedback 21: Idempotent Password Reset in `seedUsers()`
+- **Peer Reviewer Comment (`@natthakamol1130`)**:
+  > *"เพิ่ม passwordHash: defaultPasswordHash ในบล็อก update ของ seedUsers() (seed.ts บรรทัดที่ 48–53): เพื่อให้การรัน npm run prisma:seed เป็น Idempotent 100% แม้หลังจากรันชุดทดสอบเปลี่ยนรหัสผ่าน (Lab 3 Regression) แนะนำให้ใส่ passwordHash: defaultPasswordHash ลงในบล็อก update ของ prisma.user.upsert ด้วยนะคะ รหัสผ่านของ user ทดสอบจะได้ถูกรีเซ็ตกลับเป็น Password123! เสมอค่ะ"*
+- **Author Response & Action Taken (`@Suprawi5227`)**:
+  > *"จุดนี้สำคัญต่อการรันเทสต์ซ้ำๆ มากครับ! ได้เพิ่ม `passwordHash: defaultPasswordHash` ลงในบล็อก `update` ของ `prisma.user.upsert` ใน `server/prisma/seed.ts` เรียบร้อยแล้ว ทำให้ทุกครั้งที่รัน Seed รหัสผ่านของ User ทดสอบจะถูกรีเซ็ตกลับเป็น `Password123!` อย่างสมบูรณ์และเป็น Idempotent 100% ครับ"*
+
+
