@@ -83,7 +83,7 @@ Furthermore, concise and responsive **Dashboards** must be introduced for Reques
   | `REOPENED` | `IN_PROGRESS`, `WAITING_FOR_REQUESTER`, `RESOLVED`, `CANCELLED` | IT Staff, Admin |
   | Any Status | `CANCELLED` | IT Staff, Admin (or Requester if ticket is still `NEW`) |
 - **BR-08 (Resolution Gate)**: Only IT Staff and Administrators may transition a ticket to `RESOLVED` or `CLOSED`. Any direct client call by a Requester attempting this transition must be rejected with HTTP 403 Forbidden by the server.
-- **BR-09 (Requester Advisory Rule)**: When a Requester triggers "Problem Appears Resolved", the system updates `requesterResolvedInd = true` and appends a Public Comment, but the ticket status remains in its current state (e.g. `IN_PROGRESS` or `WAITING_FOR_REQUESTER`) until formally verified.
+- **BR-09 (Requester Advisory Rule)**: When a Requester triggers "Problem Appears Resolved", the client may optionally supply a resolution note (`{ note?: string }`). The backend updates `requesterResolvedInd = true` and appends an automated Public Comment (incorporating the note if provided), but the ticket status remains in its current state (e.g. `IN_PROGRESS` or `WAITING_FOR_REQUESTER`) until formally verified by IT Staff.
 - **BR-10 (Optimistic Concurrency Control)**: All Ticket and Action Taken updates must validate the client's cached timestamp or version. If the server record has a newer `updatedAt`, the backend rejects the write with HTTP 409 Conflict.
 - **BR-11 (Dashboard Authoritative Calculation)**: All dashboard metrics must be computed dynamically by backend database aggregations and not by client-side array filtering of raw collections.
 - **BR-12 (Requester Dashboard Isolation)**: All Requester dashboard queries must automatically bind `WHERE requesterId = currentUser.id`. No query parameter can override this scope.
@@ -135,9 +135,8 @@ model ActionTaken {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
-  @@index([ticketId])
+  @@index([ticketId, actionDateTime(sort: Desc)])
   @@index([performedById])
-  @@index([actionDateTime])
 }
 ```
 

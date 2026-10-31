@@ -1,7 +1,7 @@
 # Lab 4 REST API Specification: Actions Taken, Dashboards, and Ticket Workflow
 
 **Base URL**: `/api`  
-**Authentication**: Session-based (HTTP-Only signed JWT cookie)
+**Authentication**: HTTP Header `Authorization: Bearer <token>` (with fallback support for HTTP-Only signed JWT session cookies)
 
 ---
 
@@ -100,14 +100,30 @@
 - **Route**: `PATCH /tickets/:id/actions-taken/:actionId`
 - **Authorized Roles**: `IT_STAFF`, `ADMIN`
 - **Purpose**: Modify an existing action record (e.g. updating result or adding follow-up resolution).
-- **Request Body**: Partial fields allowed (`description`, `result`, `followUpRequired`, `followUpNote`, `attachmentNotes`).
+- **Request Body**:
+  ```json
+  {
+    "description": "Completed follow-up check and load testing.",
+    "result": "System remains stable after 24h burn-in.",
+    "followUpRequired": false,
+    "lastUpdatedAt": "2026-10-31T14:32:10.000Z"
+  }
+  ```
+- **Concurrency & Validation Rules**:
+  - `lastUpdatedAt` (optional string): When provided, the backend compares it against the database `action.updatedAt`. If mismatched, it safely rejects with `409 Conflict` (BR-10).
+  - If `followUpRequired` is updated to `true`, `followUpNote` is required.
 - **Responses**:
   - `200 OK`: Returns updated Action Taken object.
   - `400 Bad Request`: Validation failure (e.g. `followUpRequired` set to true without note).
   - `401 Unauthorized`: Not authenticated.
   - `403 Forbidden`: Requester account.
   - `404 Not Found`: Action Taken or Ticket not found.
-  - `409 Conflict`: Concurrency update mismatch.
+  - `409 Conflict`: Concurrency update mismatch (optimistic concurrency error).
+    ```json
+    {
+      "error": "Conflict: Action Taken record was modified by another user. Please refresh and retry."
+    }
+    ```
 
 ---
 
@@ -182,6 +198,8 @@
   - `401 Unauthorized`: Not authenticated.
   - `403 Forbidden`: Requester account.
 
+> **Note on Trend Indicators**: Trend change indicators shown in UI wireframes (e.g. "+2 today", "-1 yesterday") are calculated client-side by comparing ticket creation dates (`createdAt >= startOfDay`) or rendered via helper metadata, maintaining concise response payloads as requested by Handout Section 6.2.
+
 ---
 
 ### 2.2. Requester Dashboard Metrics
@@ -231,7 +249,7 @@
   }
   ```
 - **Behavior & Rules**:
-  - Validates requested transition against State Machine matrix (BR-07).
+  - Validates requested transition against State Machine matrix (BR-07), including `REOPENED -> WAITING_FOR_REQUESTER`.
   - Validates `lastUpdatedAt` against current database `ticket.updatedAt`. If older, returns `409 Conflict`.
   - Requesters attempting to set `status: "RESOLVED"` or `status: "CLOSED"` receive `403 Forbidden`.
 - **Responses**:
@@ -262,9 +280,15 @@
 - **Route**: `PATCH /tickets/:id/indicate-resolved`
 - **Authorized Roles**: `REQUESTER` (strictly owner)
 - **Purpose**: Requester advisory feedback indicating problem appears resolved.
+- **Request Body** *(Optional)*:
+  ```json
+  {
+    "note": "Printer is working properly now from my workstation. Thank you!"
+  }
+  ```
 - **Behavior**:
   - Sets `ticket.requesterResolvedInd = true`.
-  - Appends an automated Public Comment: *"Requester indicated that the problem appears resolved."*
+  - Appends an automated Public Comment: *"Requester indicated that the problem appears resolved."* (incorporating the requester's optional `note` if provided: *"Requester indicated that the problem appears resolved. Note: <note>"*).
   - Does NOT transition ticket status to `RESOLVED` (enforces Resolution Gate BR-08 and BR-09).
 - **Responses**:
   - `200 OK`: Returns updated ticket summary.

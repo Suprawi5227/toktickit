@@ -53,8 +53,48 @@
 
 ---
 
+### 🔍 Feedback 5: Authorization Header Alignment with Codebase
+- **Peer Reviewer Comment (`@natthakamol1130`)**:
+  > *"Authentication Header ใน api-spec.md: ในส่วนหัวระบุเป็น Session-based (HTTP-Only signed JWT cookie) แต่ในระบบจริงของ TokTickIT ตั้งแต่ Lab 3 (authMiddleware.ts และ Supertest) ใช้ Authorization: Bearer <token> เป็นหลักค่ะ แนะนำปรับข้อความให้ตรงกับ Bearer token header เพื่อไม่ให้สับสนตอนเชื่อมต่อ API นะคะ"*
+- **Author Response & Action Taken (`@Suprawi5227`)**:
+  > *"ขอบคุณมากครับที่ทักจุดนี้! ได้ปรับปรุงส่วนหัวของ `docs/lab-04/api-spec.md` ให้ระบุชัดเจนว่าใช้งาน `Authorization: Bearer <token>` เป็นหลักตามการทำงานจริงของ `authMiddleware.ts` และการทดสอบ Supertest พร้อมระบุการรองรับ fallback ผ่าน cookie session สำหรับ browser clients ครับ"*
+
+---
+
+### 🔍 Feedback 6: Compound Index in Prisma Schema
+- **Peer Reviewer Comment (`@natthakamol1130`)**:
+  > *"Compound Index ใน Prisma Schema (specification.md Section 7.1): ใน Justification ข้อ 2 มีการอ้างอิงถึง Compound Index บน [ticketId, actionDateTime] เพื่อ optimize การ query ประวัติงานเรียงตามเวลา แต่ในบล็อกโค้ด Schema ยังแยกเป็น @@index([ticketId]) และ @@index([actionDateTime]) อยู่ค่ะ แนะนำปรับให้เป็น @@index([ticketId, actionDateTime(sort: Desc)]) เพื่อให้ตรงกับคำอธิบายสถาปัตยกรรมนะคะ"*
+- **Author Response & Action Taken (`@Suprawi5227`)**:
+  > *"แก้ไขให้ตรงกับ Justification เรียบร้อยแล้วครับ! ใน `docs/lab-04/specification.md` Section 7.1 ได้เปลี่ยนเป็น `@@index([ticketId, actionDateTime(sort: Desc)])` เพื่อรองรับ Query ประวัติการทำงานย้อนหลังแบบเรียงเวลาได้อย่างมีประสิทธิภาพสูงสุดครับ"*
+
+---
+
+### 🔍 Feedback 7: Concurrency Control in Action Taken Update
+- **Peer Reviewer Comment (`@natthakamol1130`)**:
+  > *"Concurrency Control ใน Action Taken Update (api-spec.md Section 1.3): ใน Endpoint PATCH /tickets/:id/actions-taken/:actionId มีระบุเคส 409 Conflict แต่ใน Request Body ยังไม่มีฟิลด์ timestamp สำหรับตรวจสอบ แนะนำเพิ่ม lastUpdatedAt?: string (หรือ expectedUpdatedAt) ใน Body เหมือนกับ Ticket Status Update ใน Section 3.1 เพื่อให้รองรับ Optimistic Concurrency Check ตาม BR-10 ได้สมบูรณ์ค่ะ"*
+- **Author Response & Action Taken (`@Suprawi5227`)**:
+  > *"เห็นด้วยอย่างยิ่งครับ! ได้เพิ่มฟิลด์ `lastUpdatedAt?: string` ใน Request Body ของ `PATCH /tickets/:id/actions-taken/:actionId` ใน `docs/lab-04/api-spec.md` Section 1.3 เพื่อให้ระบบตรวจสอบ timestamp ก่อนบันทึก และส่ง 409 Conflict หากข้อมูลถูกแก้ไขโดยผู้อื่นไปก่อนหน้า ตามกฎ BR-10 ครับ"*
+
+---
+
+### 🔍 Feedback 8: Dashboard Trend / Change Indicators Note
+- **Peer Reviewer Comment (`@natthakamol1130`)**:
+  > *"Trend / Change Indicator บน Dashboard (api-spec.md Section 2.1): ใน Mockup หน้าจอมีตัวเลขแนวโน้ม (เช่น +2 today, -1 yesterday) แต่ใน Response JSON มีเฉพาะตัวเลข count แนะนำโน้ตเพิ่มเติมสั้นๆ ว่าฟิลด์ trend นี้คำนวณจาก Backend หรือเป็น optional display เพื่อให้สอดคล้องกันระหว่าง UI และ API นะคะ"*
+- **Author Response & Action Taken (`@Suprawi5227`)**:
+  > *"ได้เพิ่มคำอธิบาย Note on Trend Indicators ใน Section 2.1 ของ `docs/lab-04/api-spec.md` เรียบร้อยแล้วครับ โดยระบุว่าตัวเลขแนวโน้ม (+2 today, -1 yesterday) เป็นการคำนวณของฝั่ง UI Client หรือคำนวณเสริมจากเวลาสร้าง เพื่อรักษาขนาด Response JSON จาก Server ให้กะทัดรัดตาม Handout Section 6.2 ครับ"*
+
+---
+
+### 🔍 Feedback 9: Optional Resolution Note for Requester
+- **Peer Reviewer Comment (`@natthakamol1130`)**:
+  > *"Optional Note สำหรับ Requester Resolution (api-spec.md Section 3.2): ใน PATCH /tickets/:id/indicate-resolved อาจเปิดรับ Request Body { note?: string } เพิ่มเติม เพื่อให้ผู้แจ้งสามารถแนบข้อความสั้นๆ ตอนกดแจ้งแก้ปัญหาเสร็จแล้ว ไปต่อท้าย Auto Public Comment ได้ค่ะ"*
+- **Author Response & Action Taken (`@Suprawi5227`)**:
+  > *"ยอดเยี่ยมมากครับ! ได้เพิ่ม Request Body `{ note?: string }` ใน Section 3.2 ของ `docs/lab-04/api-spec.md` และปรับ BR-09 ใน `docs/lab-04/specification.md` ให้ผู้แจ้งสามารถแนบข้อความเพิ่มเติมได้ โดยข้อความนี้จะถูกนำไปต่อท้าย Public Comment ให้อัตโนมัติครับ"*
+
+---
+
 ## 3. Approval Sign-off
-- [x] All Feedback items addressed with concrete document revisions.
+- [x] All Feedback items from Round 1 and Round 2 addressed with concrete document revisions.
 - [x] Specifications conform to Lab 4 Handout Sections 1 to 9.
 - [x] Traceable evidence recorded for Sprint 4 Final PDF Report.
 - **Decision**: **APPROVED & SIGNED-OFF** for Sprint 4 Engineering Contract.
