@@ -50,6 +50,7 @@ export async function seedUsers(prisma: PrismaClient): Promise<Record<string, nu
         role: u.role,
         isActive: u.isActive,
         requiresPasswordChange: u.requiresPasswordChange,
+        passwordHash: defaultPasswordHash,
       },
       create: {
         email: u.email,
@@ -145,7 +146,7 @@ export async function seedTickets(
       ownerEmail: "lisa.martinez@toktickit.com",
       categoryName: "Software",
       systemName: "Email",
-      requesterResolvedInd: false,
+      requesterResolvedInd: true,
     },
     {
       ticketNumber: "TXT-2025-001231",
@@ -190,8 +191,8 @@ export async function seedTickets(
       ticketNumber: "TXT-2025-001228",
       summary: "Department printer recurring jam on tray 2",
       description: "Printer jammed again after previous cleanup. Paper sensor may be failing.",
-      requestedPriority: Priority.HIGH,
-      itPriority: ITPriority.HIGH,
+      requestedPriority: Priority.URGENT,
+      itPriority: ITPriority.URGENT,
       status: TicketStatus.REOPENED,
       requesterEmail: "sarah.johnson@example.com",
       ownerEmail: "robert.wilson@toktickit.com",
