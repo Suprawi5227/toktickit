@@ -8,9 +8,7 @@ describe("Lab 4 Actions Taken API", () => {
   let itStaffBToken: string;
   let requesterToken: string;
   let otherRequesterToken: string;
-  let inactiveStaffToken: string;
   let testTicketId: number;
-  let otherTicketId: number;
   let createdActionId: number;
   let actionUpdatedAt: string;
 
@@ -39,16 +37,11 @@ describe("Lab 4 Actions Taken API", () => {
       .send({ email: "michael.brown@example.com", password: "Password123!" });
     otherRequesterToken = otherReqLogin.body.token;
 
-    // Fetch ticket IDs from database
+    // Fetch ticket ID from database
     const ticketA = await getPrisma().ticket.findUnique({
       where: { ticketNumber: "TXT-2025-001234" },
     });
     testTicketId = ticketA!.id;
-
-    const ticketB = await getPrisma().ticket.findUnique({
-      where: { ticketNumber: "TXT-2025-001233" },
-    });
-    otherTicketId = ticketB!.id;
   });
 
   it("API-01: IT Staff creates Action Taken with automated performer attribution (AC-01, FR-01, FR-02)", async () => {
@@ -202,16 +195,24 @@ describe("Lab 4 Actions Taken API", () => {
     }
   });
 
-  it("API-10: Rejects Action Taken attribution to inactive IT Staff user with HTTP 400/401 (BR-14)", async () => {
-    // Generate a valid JWT for inactive staff
+  it("API-10: Rejects Action Taken attribution to inactive IT Staff user with HTTP 400 Bad Request (BR-14)", async () => {
     const inactiveUser = await getPrisma().user.findUnique({
       where: { email: "inactive.staff@toktickit.com" },
     });
+    expect(inactiveUser).toBeDefined();
 
-    // Inactive user attempting login is rejected with 401
-    const loginRes = await request(app)
-      .post("/api/auth/login")
-      .send({ email: "inactive.staff@toktickit.com", password: "Password123!" });
-    expect(loginRes.status).toBe(401);
+    // Active IT staff attempts to attribute action to deactivated technician
+    const res = await request(app)
+      .post(`/api/tickets/${testTicketId}/actions-taken`)
+      .set("Authorization", `Bearer ${itStaffToken}`)
+      .send({
+        description: "Attempted assignment of work log to deactivated technician.",
+        result: "Blocked by system safety checks.",
+        followUpRequired: false,
+        performedById: inactiveUser!.id,
+      });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/performer account is deactivated/i);
   });
 });

@@ -199,4 +199,31 @@
 - **Author Response & Action Taken (`@Suprawi5227`)**:
   > *"จุดนี้สำคัญต่อการรันเทสต์ซ้ำๆ มากครับ! ได้เพิ่ม `passwordHash: defaultPasswordHash` ลงในบล็อก `update` ของ `prisma.user.upsert` ใน `server/prisma/seed.ts` เรียบร้อยแล้ว ทำให้ทุกครั้งที่รัน Seed รหัสผ่านของ User ทดสอบจะถูกรีเซ็ตกลับเป็น `Password123!` อย่างสมบูรณ์และเป็น Idempotent 100% ครับ"*
 
+---
+
+## 6. Peer Review Round 6 (PR #69: Actions Taken Backend API & Authorization)
+
+### 🔍 Feedback 22: Router Mounting Order in `server/src/app.ts` (Lab 3 Regression)
+- **Peer Reviewer Comment (`@natthakamol1130`)**:
+  > *"ลำดับการ Mount Router ใน server/src/app.ts (กระทบ Regression Test ของ Lab 3): ตอนนี้ app.use("/api/tickets", staffRouter) ถูกวางไว้ท้ายไฟล์ (บรรทัดที่ 441) ซึ่งอยู่ หลัง app.get("/api/tickets/:id", ...) (บรรทัดที่ 356) ทำให้เมื่อเรียก GET /api/tickets/queue (ในเทสต์ staff-queue.api.test.ts และ staff-ticket-detail.api.test.ts ของ Lab 3) Express จะจับคู่เข้า /api/tickets/:id (โดยมองว่า :id = "queue") แล้วคืนค่า 400 Bad Request แทนที่จะเข้า staffRouter ค่ะ วิธีแก้: รบกวนย้ายบล็อก app.use("/api/auth", ...), app.use("/api/tickets/:id/actions-taken", ...), app.use("/api/tickets", staffRouter) และ app.use("/api/admin", ...) ขึ้นไปวาง ก่อนหน้า app.get("/api/tickets/:id", ...) นะคะ"*
+- **Author Response & Action Taken (`@Suprawi5227`)**:
+  > *"เป็นจุดสังเกตที่เฉียบขาดมากครับ! ได้ย้ายบล็อกการ Mount Routers ทั้งหมด (`/api/auth`, `/api/tickets/:id/actions-taken`, `/api/tickets`, `/api/admin`) ขึ้นมาอยู่ก่อนหน้า `app.get("/api/tickets/:id")` เรียบร้อยแล้ว และเพิ่มการดึง identity จาก Session/Token ใน `app.get("/api/tickets/:id")` ส่งผลให้เทสต์ของ Lab 3 (`staff-queue`, `staff-ticket-detail`, `authorization`, `comments-notes`) ผ่านฉลุย 100% ไม่มีปัญหา Route Shadowing อีกต่อไปครับ"*
+
+---
+
+### 🔍 Feedback 23: Direct API Verification of BR-14 (Inactive IT Staff Safety)
+- **Peer Reviewer Comment (`@natthakamol1130`)**:
+  > *"การตรวจสอบ API-10 (BR-14: Inactive IT Staff Safety) ใน actions-taken.routes.ts และ actions-taken.api.test.ts: ใน server/tests/lab-04/actions-taken.api.test.ts ข้อ API-10 ตอนนี้ทดสอบแค่ POST /api/auth/login แล้วเช็ค 401 แต่ยังไม่ได้ยิงทดสอบที่ POST /api/tickets/:id/actions-taken เลยค่ะ (และมีตัวแปร inactiveStaffToken, otherTicketId, inactiveUser ที่ประกาศไว้แต่ยังไม่ได้ใช้งาน) ตาม docs/lab-04/tests.md (API-10) และ BR-14 กำหนดว่าหากพยายามผูก Action Taken กับบัญชี IT Staff ที่ถูกระงับ (isActive = false) ต้องคืนค่า 400 Bad Request วิธีแก้: ใน server/src/routes/actions-taken.routes.ts (POST /): ให้เช็ค const targetPerformerId = req.body.performedById ? Number(req.body.performedById) : req.user!.id; หากไม่พบผู้ใช้หรือ !performer.isActive ให้คืนค่า 400 Bad Request ("Cannot record action: Performer account is deactivated") (ส่วนตอนบันทึกลง DB ให้ยังคงใช้ performedById: req.user!.id เพื่อป้องกันการปลอมแปลงผู้กระทำตามเดิมค่ะ) ใน server/tests/lab-04/actions-taken.api.test.ts (API-10): ให้ทดสอบยิง POST /api/tickets/${testTicketId}/actions-taken พร้อมส่ง performedById: inactiveUser!.id แล้วเช็คว่าได้ expect(res.status).toBe(400) ค่ะ"*
+- **Author Response & Action Taken (`@Suprawi5227`)**:
+  > *"ปรับปรุงตามคำแนะนำครบถ้วนสมบูรณ์ทั้ง 2 จุดครับ: (1) ใน `server/src/routes/actions-taken.routes.ts` เพิ่มการตรวจจับ `targetPerformerId` จาก Body หากบัญชีผู้ปฏิบัติงานถูกระงับ (`isActive = false`) จะส่ง HTTP 400 Bad Request พร้อมข้อความชัดเจนทันที และ (2) ใน `actions-taken.api.test.ts` ได้ปรับปรุงเคส `API-10` ให้ยิงคำขอจริงไปยัง `POST /api/tickets/:id/actions-taken` พร้อมแนบ ID ของช่างที่ถูก Deactivated และตรวจสอบการคืนค่า 400 Bad Request พร้อมเคลียร์ Unused Variables ออกหมดจดครับ"*
+
+---
+
+### 🔍 Feedback 24: PR #69 Checklist Sign-off
+- **Peer Reviewer Comment (`@natthakamol1130`)**:
+  > *"Peer Review Checklist ในคำอธิบาย PR #69: รบกวนติ๊กเครื่องหมายถูก - [x] ในหัวข้อ ## 🔍 Peer Review Checklist ของ PR Description ให้ครบทั้ง 5 ข้อด้วยนะคะ เมื่อแก้ไขและรัน npm test ใน server ผ่านครบทุกไฟล์แล้ว แจ้งได้เลยนะคะ เดี๋ยวกด Approve และ Merge ให้ทันทีค่ะ 🌷"*
+- **Author Response & Action Taken (`@Suprawi5227`)**:
+  > *"ได้ติ๊กถูก `- [x]` ครบถ้วนทั้ง 5 ข้อใน PR Description ของ PR #69 และตรวจสอบความถูกต้องของ Test Suites ทั้งหมดเรียบร้อยแล้วครับ"*
+
+
 

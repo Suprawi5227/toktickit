@@ -1,6 +1,7 @@
 import express, { Request, Response } from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import jwt from "jsonwebtoken";
 import { getPrisma } from "./prisma.js";
 import { CreateTicketSchema } from "./schemas/ticket.schema.js";
 import { ZodError } from "zod";
@@ -323,13 +324,44 @@ app.get("/api/attachments/:id", async (req: Request, res: Response): Promise<voi
 });
 
 // ---------------------------------------------------------------------------
+// Lab 3 & 4 Routers (Mounted before /api/tickets/:id to prevent shadowing /queue)
+// ---------------------------------------------------------------------------
+app.use("/api/auth", authRouter);
+app.use("/api/tickets/:id/actions-taken", actionsTakenRouter);
+app.use("/api/tickets", staffRouter);
+app.use("/api/admin", adminRouter);
+
+// ---------------------------------------------------------------------------
 // Lab 2 - Issue 8: Ticket Detail & Attachment Deletion
 // ---------------------------------------------------------------------------
 app.get("/api/tickets/:id", async (req: Request, res: Response): Promise<void> => {
   try {
+    let requesterId: number | undefined;
+    let userRole: string | undefined;
+
     const requesterIdStr = req.headers['x-requester-id'] as string;
-    const requesterId = parseInt(requesterIdStr, 10);
-    if (isNaN(requesterId)) {
+    if (requesterIdStr && !isNaN(parseInt(requesterIdStr, 10))) {
+      requesterId = parseInt(requesterIdStr, 10);
+    }
+
+    if (requesterId === undefined) {
+      // Check auth session cookie / bearer token (Lab 3 & 4)
+      let token = (req as any).cookies?.toktickit_session;
+      if (!token && req.headers.authorization?.startsWith("Bearer ")) {
+        token = req.headers.authorization.substring(7);
+      }
+      if (token) {
+        try {
+          const decoded = jwt.verify(token, process.env.JWT_SECRET || "toktickit-secret-jwt-key-lab3") as any;
+          requesterId = decoded.id;
+          userRole = decoded.role;
+        } catch {
+          // ignore invalid token
+        }
+      }
+    }
+
+    if (requesterId === undefined) {
       res.status(400).json({ error: "Missing or invalid x-requester-id header" });
       return;
     }
@@ -365,9 +397,11 @@ app.get("/api/tickets/:id", async (req: Request, res: Response): Promise<void> =
       return;
     }
 
-    if (ticket.requesterId !== requesterId) {
-      res.status(403).json({ error: "Forbidden: You are not the owner of this ticket" });
-      return;
+    if (userRole === "REQUESTER" || !userRole) {
+      if (ticket.requesterId !== requesterId) {
+        res.status(403).json({ error: "Forbidden: You are not the owner of this ticket" });
+        return;
+      }
     }
 
     res.status(200).json({ success: true, data: ticket });
@@ -432,13 +466,5 @@ app.delete("/api/attachments/:id", async (req: Request, res: Response): Promise<
     res.status(500).json({ error: "Internal server error" });
   }
 });
-
-// ---------------------------------------------------------------------------
-// Lab 3 & 4 Routers
-// ---------------------------------------------------------------------------
-app.use("/api/auth", authRouter);
-app.use("/api/tickets/:id/actions-taken", actionsTakenRouter);
-app.use("/api/tickets", staffRouter);
-app.use("/api/admin", adminRouter);
 
 export default app;

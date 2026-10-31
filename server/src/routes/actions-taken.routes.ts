@@ -21,8 +21,9 @@ actionsTakenRouter.post(
       }
 
       // BR-14: Inactive user safety
+      const targetPerformerId = req.body.performedById ? Number(req.body.performedById) : req.user!.id;
       const performer = await getPrisma().user.findUnique({
-        where: { id: req.user!.id },
+        where: { id: targetPerformerId },
       });
       if (!performer || !performer.isActive) {
         res.status(400).json({ error: "Cannot record action: Performer account is deactivated" });
@@ -323,3 +324,4 @@ actionsTakenRouter.delete("/:actionId", authMiddleware, (_req: AuthenticatedRequ
     error: "Method Not Allowed: Action Taken records constitute an immutable audit trail and cannot be deleted (BR-16).",
   });
 });
+
