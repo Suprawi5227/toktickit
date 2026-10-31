@@ -111,12 +111,30 @@
 
 ---
 
+### 1.4. Retrieve Single Action Taken Details
+- **Route**: `GET /tickets/:id/actions-taken/:actionId`
+- **Authorized Roles**: All authenticated users (with ownership check for `REQUESTER`).
+- **Purpose**: Retrieve full details of an individual Action Taken record by its ID.
+- **Responses**:
+  - `200 OK`: Returns single Action Taken object matching shape in 1.1.
+  - `401 Unauthorized`: Not authenticated.
+  - `403 Forbidden`: Authenticated user is a `REQUESTER` querying an action under another user's ticket.
+  - `404 Not Found`: Ticket or Action Taken record does not exist.
+
+---
+
+### 1.5. Audit Trail & Omission of DELETE Endpoint
+- **Design Rule**: The TokTickIT API intentionally does not expose a `DELETE /tickets/:id/actions-taken/:actionId` endpoint.
+- **Rationale**: Actions Taken constitute historical records of actual technical work performed. Omitting deletion guarantees that technical work records remain permanent, tamper-evident audit trails as mandated by enterprise service-desk standards.
+
+---
+
 ## 2. Role Dashboards Endpoints
 
-### 2.1. IT Staff Dashboard Metrics
+### 2.1. IT Staff & Admin Dashboard Metrics
 - **Route**: `GET /dashboards/staff`
 - **Authorized Roles**: `IT_STAFF`, `ADMIN`
-- **Purpose**: Return operational counts and summary metrics for the staff cockpit.
+- **Purpose**: Return operational counts and summary metrics for the staff cockpit (with concise user accounts summary when queried by `ADMIN`).
 - **Responses**:
   - `200 OK`:
     ```json
@@ -136,6 +154,13 @@
           "high": 9,
           "medium": 28,
           "low": 17
+        },
+        "userSummary": {
+          "totalUsers": 12,
+          "activeUsers": 11,
+          "requesters": 6,
+          "staff": 4,
+          "admins": 2
         },
         "recentTickets": [
           {

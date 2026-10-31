@@ -80,7 +80,7 @@ Furthermore, concise and responsive **Dashboards** must be introduced for Reques
   | `WAITING_FOR_REQUESTER` | `IN_PROGRESS`, `RESOLVED`, `CANCELLED` | IT Staff, Admin |
   | `RESOLVED` | `CLOSED`, `REOPENED` | IT Staff, Admin |
   | `CLOSED` | `REOPENED` | IT Staff, Admin |
-  | `REOPENED` | `IN_PROGRESS`, `RESOLVED`, `CANCELLED` | IT Staff, Admin |
+  | `REOPENED` | `IN_PROGRESS`, `WAITING_FOR_REQUESTER`, `RESOLVED`, `CANCELLED` | IT Staff, Admin |
   | Any Status | `CANCELLED` | IT Staff, Admin (or Requester if ticket is still `NEW`) |
 - **BR-08 (Resolution Gate)**: Only IT Staff and Administrators may transition a ticket to `RESOLVED` or `CLOSED`. Any direct client call by a Requester attempting this transition must be rejected with HTTP 403 Forbidden by the server.
 - **BR-09 (Requester Advisory Rule)**: When a Requester triggers "Problem Appears Resolved", the system updates `requesterResolvedInd = true` and appends a Public Comment, but the ticket status remains in its current state (e.g. `IN_PROGRESS` or `WAITING_FOR_REQUESTER`) until formally verified.
@@ -90,6 +90,7 @@ Furthermore, concise and responsive **Dashboards** must be introduced for Reques
 - **BR-13 (Zero-Value Metrics Integrity)**: Dashboard metric cards must return numeric `0` and render `0` gracefully when no matching records exist, avoiding `null`, `undefined`, or broken layouts.
 - **BR-14 (Inactive Assignee Safety)**: Reassigning a ticket or attributing an Action Taken to a deactivated user (`isActive = false`) is rejected with HTTP 400 Bad Request.
 - **BR-15 (Audit Trail Stability)**: Actions Taken records maintain immutable creation timestamps and ordered sequencing by `actionDateTime ASC, id ASC`.
+- **BR-16 (Immutable Audit Trail & Omission of Deletion)**: Actions Taken records are strictly permanent work logs; the system intentionally provides no `DELETE` endpoint. Once created, action records cannot be removed by any role (including Administrators) to preserve a reliable, tamper-evident audit history of technical interventions.
 
 ---
 
