@@ -19,11 +19,23 @@ import { useAuth } from "../contexts/AuthContext.js";
 interface StaffTicketDetailProps {
   ticketId: number;
   onBack: () => void;
+  initialTicket?: Ticket;
 }
 
-export function StaffTicketDetail({ ticketId, onBack }: StaffTicketDetailProps) {
+export const PERMITTED_TRANSITIONS: Record<string, string[]> = {
+  NEW: ["OPEN", "IN_PROGRESS", "CANCELLED"],
+  OPEN: ["IN_PROGRESS", "WAITING_FOR_REQUESTER", "RESOLVED", "CANCELLED"],
+  IN_PROGRESS: ["WAITING_FOR_REQUESTER", "RESOLVED", "CANCELLED"],
+  WAITING_FOR_REQUESTER: ["IN_PROGRESS", "RESOLVED", "CANCELLED"],
+  RESOLVED: ["CLOSED", "REOPENED"],
+  CLOSED: ["REOPENED"],
+  REOPENED: ["IN_PROGRESS", "WAITING_FOR_REQUESTER", "RESOLVED", "CANCELLED"],
+  CANCELLED: [],
+};
+
+export function StaffTicketDetail({ ticketId, onBack, initialTicket }: StaffTicketDetailProps) {
   const { user } = useAuth();
-  const [ticket, setTicket] = useState<Ticket | null>(null);
+  const [ticket, setTicket] = useState<Ticket | null>(initialTicket || null);
   const [comments, setComments] = useState<any[]>([]);
   const [notes, setNotes] = useState<any[]>([]);
   const [staffUsers, setStaffUsers] = useState<User[]>([]);
@@ -32,14 +44,16 @@ export function StaffTicketDetail({ ticketId, onBack }: StaffTicketDetailProps) 
   const [newComment, setNewComment] = useState("");
   const [newNote, setNewNote] = useState("");
 
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!initialTicket);
   const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isConflict, setIsConflict] = useState(false);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   async function loadData() {
     setLoading(true);
     setError(null);
+    setIsConflict(false);
     try {
       const tData = await getTicket(ticketId);
       setTicket(tData);
@@ -70,13 +84,16 @@ export function StaffTicketDetail({ ticketId, onBack }: StaffTicketDetailProps) 
   }
 
   useEffect(() => {
-    loadData();
+    if (!initialTicket) {
+      loadData();
+    }
   }, [ticketId]);
 
   async function handleClaim() {
     setActionLoading(true);
     setSuccessMsg(null);
     setError(null);
+    setIsConflict(false);
     try {
       const updated = await claimTicket(ticketId);
       setTicket(updated);
@@ -92,11 +109,15 @@ export function StaffTicketDetail({ ticketId, onBack }: StaffTicketDetailProps) 
     setActionLoading(true);
     setSuccessMsg(null);
     setError(null);
+    setIsConflict(false);
     try {
-      const updated = await updateTicketStatus(ticketId, newStatus);
-      setTicket((prev) => (prev ? { ...prev, status: updated.status } : null));
+      const updated = await updateTicketStatus(ticketId, newStatus, ticket?.updatedAt);
+      setTicket((prev) => (prev ? { ...prev, status: updated.status, updatedAt: updated.updatedAt || prev.updatedAt } : null));
       setSuccessMsg(`Status updated to ${newStatus}`);
     } catch (err: any) {
+      if (err.status === 409 || err.message?.includes("conflict") || err.message?.includes("recently updated")) {
+        setIsConflict(true);
+      }
       setError(err.message || "Status update failed");
     } finally {
       setActionLoading(false);
@@ -199,9 +220,34 @@ export function StaffTicketDetail({ ticketId, onBack }: StaffTicketDetailProps) 
 
         <div className="d-flex flex-wrap align-items-center justify-content-between gap-2">
           <div>
-            <h4 className="mb-1 text-success font-monospace fw-bold" style={{ color: "#006B3C" }}>
-              {ticket.ticketNumber}
-            </h4>
+            <div className="d-flex align-items-center gap-2 mb-1">
+              <h4 className="mb-0 text-success font-monospace fw-bold" style={{ color: "#006B3C" }}>
+                {ticket.ticketNumber}
+              </h4>
+              <span
+                className="badge px-3 py-1"
+                data-testid="ticket-status-badge"
+                style={
+                  ticket.status === "REOPENED"
+                    ? { backgroundColor: "#20C997", color: "#FFFFFF" }
+                    : ticket.status === "RESOLVED"
+                    ? { backgroundColor: "#006B3C", color: "#FFFFFF" }
+                    : ticket.status === "OPEN"
+                    ? { backgroundColor: "#6F42C1", color: "#FFFFFF" }
+                    : ticket.status === "IN_PROGRESS"
+                    ? { backgroundColor: "#FD7E14", color: "#FFFFFF" }
+                    : ticket.status === "WAITING_FOR_REQUESTER"
+                    ? { backgroundColor: "#FFC107", color: "#664D03" }
+                    : ticket.status === "CLOSED"
+                    ? { backgroundColor: "#6C757D", color: "#FFFFFF" }
+                    : ticket.status === "CANCELLED"
+                    ? { backgroundColor: "#DC3545", color: "#FFFFFF" }
+                    : { backgroundColor: "#0D6EFD", color: "#FFFFFF" }
+                }
+              >
+                {ticket.status}
+              </span>
+            </div>
             <h5 className="mb-0 fw-bold">{ticket.summary}</h5>
           </div>
 
@@ -221,13 +267,48 @@ export function StaffTicketDetail({ ticketId, onBack }: StaffTicketDetailProps) 
       </div>
 
       <div className="card-body p-4">
-        {error && <div className="alert alert-danger py-2 mb-3">{error}</div>}
+        {isConflict && (
+          <div
+            className="alert alert-warning d-flex justify-content-between align-items-center py-2 mb-3"
+            role="alert"
+            data-testid="conflict-alert"
+          >
+            <span>This ticket was recently updated by another user. Please refresh the page to view the latest status before making changes.</span>
+            <button
+              className="btn btn-warning btn-sm fw-bold ms-3"
+              onClick={() => {
+                setIsConflict(false);
+                loadData();
+              }}
+            >
+              Refresh Ticket
+            </button>
+          </div>
+        )}
+
+        {error && !isConflict && <div className="alert alert-danger py-2 mb-3">{error}</div>}
         {successMsg && <div className="alert alert-success py-2 mb-3">{successMsg}</div>}
 
         {ticket.requesterResolvedInd && (
-          <div className="alert alert-info py-2 mb-3 d-flex align-items-center gap-2">
-            <i className="bi bi-check-circle-fill text-info"></i>
-            <strong>Requester Feedback:</strong> The requester indicated that this problem appears resolved.
+          <div
+            className="alert alert-info py-2 mb-3 d-flex align-items-center justify-content-between gap-2"
+            role="alert"
+            data-testid="advisory-banner"
+          >
+            <div>
+              <i className="bi bi-info-circle-fill me-2"></i>
+              <strong>Requester Feedback:</strong> The requester indicated that this problem appears resolved.
+            </div>
+            {PERMITTED_TRANSITIONS[ticket.status]?.includes("RESOLVED") && (
+              <button
+                className="btn btn-sm btn-success fw-bold text-nowrap"
+                style={{ backgroundColor: "#006B3C", borderColor: "#006B3C" }}
+                onClick={() => handleStatusChange("RESOLVED")}
+                disabled={actionLoading}
+              >
+                Formally Resolve Ticket
+              </button>
+            )}
           </div>
         )}
 
@@ -238,17 +319,18 @@ export function StaffTicketDetail({ ticketId, onBack }: StaffTicketDetailProps) 
             <select
               className="form-select form-select-sm"
               value={ticket.status}
+              data-testid="status-select"
               onChange={(e) => handleStatusChange(e.target.value)}
               disabled={actionLoading || (user?.role !== "IT_STAFF" && user?.role !== "ADMIN")}
             >
-              <option value="NEW">NEW</option>
-              <option value="OPEN">OPEN</option>
-              <option value="IN_PROGRESS">IN_PROGRESS</option>
-              <option value="WAITING_FOR_REQUESTER">WAITING_FOR_REQUESTER</option>
-              <option value="RESOLVED">RESOLVED</option>
-              <option value="CLOSED">CLOSED</option>
-              <option value="REOPENED">REOPENED</option>
-              <option value="CANCELLED">CANCELLED</option>
+              <option value={ticket.status}>{ticket.status}</option>
+              {(PERMITTED_TRANSITIONS[ticket.status] || [])
+                .filter((st) => st !== ticket.status)
+                .map((st) => (
+                  <option key={st} value={st}>
+                    {st}
+                  </option>
+                ))}
             </select>
           </div>
 
