@@ -20,3 +20,5 @@ uploads/
 *.diff
 client/src/**/*.js
 client/tests/**/*.js
+test-results/
+playwright-report/

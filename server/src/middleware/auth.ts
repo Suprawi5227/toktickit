@@ -33,10 +33,14 @@ export function generateToken(user: { id: number; email: string; name: string; r
 
 export async function authMiddleware(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
   try {
-    let token = req.cookies?.toktickit_session;
+    let token: string | undefined;
 
-    if (!token && req.headers.authorization?.startsWith("Bearer ")) {
+    if (req.headers.authorization?.startsWith("Bearer ")) {
       token = req.headers.authorization.substring(7);
+    }
+
+    if (!token && req.cookies?.toktickit_session) {
+      token = req.cookies.toktickit_session;
     }
 
     if (!token && req.headers["x-session-token"]) {

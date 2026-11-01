@@ -7,8 +7,13 @@ describe("category seed", () => {
     const prisma = getPrisma();
     let assertionError: unknown;
     await prisma.$transaction(async (tx) => {
+      await tx.actionTaken.deleteMany();
+      await tx.publicComment.deleteMany();
+      await tx.internalNote.deleteMany();
+      await tx.attachment.deleteMany();
+      await tx.ticket.deleteMany();
       await tx.category.deleteMany();
-      await seedCategories(tx);
+      await seedCategories(tx as any);
       const seeded = await tx.category.findMany({ select: { name: true } });
       try {
         expect(seeded.map((c) => c.name).sort()).toEqual([...CATEGORIES].sort());
@@ -26,8 +31,13 @@ describe("category seed", () => {
     const prisma = getPrisma();
     let assertionError: unknown;
     await prisma.$transaction(async (tx) => {
+      await tx.actionTaken.deleteMany();
+      await tx.publicComment.deleteMany();
+      await tx.internalNote.deleteMany();
+      await tx.attachment.deleteMany();
+      await tx.ticket.deleteMany();
       await tx.category.deleteMany();
-      await seedCategories(tx);
+      await seedCategories(tx as any);
       await seedCategories(tx);
       const count = await tx.category.count();
       const names = await tx.category.findMany({ select: { name: true } });

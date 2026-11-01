@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { getTicket, deleteAttachment, Ticket } from "../api.js";
+import { getTicket, deleteAttachment, indicateTicketResolved, Ticket } from "../api.js";
+import { ActionsTaken } from "./ActionsTaken.js";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
 
@@ -7,14 +8,16 @@ interface TicketDetailProps {
   ticketId: number;
   requesterId: number;
   onBack: () => void;
+  initialTicket?: Ticket;
 }
 
-export function TicketDetail({ ticketId, requesterId, onBack }: TicketDetailProps) {
-  const [ticket, setTicket] = useState<Ticket | null>(null);
+export function TicketDetail({ ticketId, requesterId, onBack, initialTicket }: TicketDetailProps) {
+  const [ticket, setTicket] = useState<Ticket | null>(initialTicket || null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const fetchTicket = async () => {
+    if (initialTicket) return;
     setLoading(true);
     setError(null);
     try {
@@ -28,7 +31,9 @@ export function TicketDetail({ ticketId, requesterId, onBack }: TicketDetailProp
   };
 
   useEffect(() => {
-    fetchTicket();
+    if (!initialTicket) {
+      fetchTicket();
+    }
   }, [ticketId]);
 
   const handleDeleteAttachment = async (id: number) => {
@@ -43,6 +48,25 @@ export function TicketDetail({ ticketId, requesterId, onBack }: TicketDetailProp
     }
   };
 
+  const handleIndicateResolved = async () => {
+    const promptVal = window.prompt("Optional resolution note (e.g. Printer is working properly now):");
+    if (promptVal === null) return;
+    const note = promptVal.trim() ? promptVal.trim() : undefined;
+    try {
+      setLoading(true);
+      await indicateTicketResolved(ticketId, note);
+      if (initialTicket) {
+        setTicket((prev) => (prev ? { ...prev, requesterResolvedInd: true } : null));
+      } else {
+        await fetchTicket();
+      }
+    } catch (err: any) {
+      alert(err.message || "Failed to indicate resolution");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const getPriorityBadge = (priority: string) => {
     switch (priority) {
       case "URGENT": return "badge bg-danger";
@@ -52,9 +76,25 @@ export function TicketDetail({ ticketId, requesterId, onBack }: TicketDetailProp
     }
   };
 
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "NEW": return <span className="badge" style={{ backgroundColor: "#0D6EFD", color: "#FFFFFF" }}>NEW</span>;
+      case "OPEN": return <span className="badge" style={{ backgroundColor: "#6F42C1", color: "#FFFFFF" }}>OPEN</span>;
+      case "IN_PROGRESS": return <span className="badge" style={{ backgroundColor: "#FD7E14", color: "#FFFFFF" }}>IN_PROGRESS</span>;
+      case "WAITING_FOR_REQUESTER": return <span className="badge bg-warning text-dark">WAITING_FOR_REQUESTER</span>;
+      case "RESOLVED": return <span className="badge" style={{ backgroundColor: "#006B3C", color: "#FFFFFF" }}>RESOLVED</span>;
+      case "CLOSED": return <span className="badge bg-secondary">CLOSED</span>;
+      case "REOPENED": return <span className="badge" data-testid="status-badge-reopened" style={{ backgroundColor: "#20C997", color: "#FFFFFF" }}>REOPENED</span>;
+      case "CANCELLED": return <span className="badge bg-danger">CANCELLED</span>;
+      default: return <span className="badge bg-secondary">{status}</span>;
+    }
+  };
+
   if (loading) return <div className="text-center py-5">Loading ticket details...</div>;
   if (error) return <div className="alert alert-danger">{error}</div>;
   if (!ticket) return null;
+
+  const isActive = ticket.status !== "RESOLVED" && ticket.status !== "CLOSED" && ticket.status !== "CANCELLED";
 
   return (
     <div className="card shadow-sm mt-4">
@@ -71,13 +111,31 @@ export function TicketDetail({ ticketId, requesterId, onBack }: TicketDetailProp
           </div>
           <div className="col-md-4">
             <div className="p-3 bg-light rounded border">
-              <strong>Status:</strong> <span className="badge bg-secondary ms-2">{ticket.status}</span><br/>
+              <strong>Status:</strong> <span className="ms-2">{getStatusBadge(ticket.status)}</span><br/>
               <strong>Priority:</strong> <span className={`ms-2 ${getPriorityBadge(ticket.requestedPriority)}`}>{ticket.requestedPriority}</span><br/>
               <hr/>
               <strong>Category:</strong> {ticket.category?.name}<br/>
               <strong>Related System:</strong> {ticket.relatedSystem?.name}<br/>
               <strong>Requester:</strong> {ticket.requester?.name} ({ticket.requester?.email})<br/>
               <strong>Created At:</strong> {new Date(ticket.createdAt).toLocaleString()}
+
+              {isActive && (
+                <div className="mt-3 pt-2 border-top">
+                  {!ticket.requesterResolvedInd ? (
+                    <button
+                      className="btn btn-outline-success btn-sm w-100 fw-semibold"
+                      data-testid="indicate-resolved-btn"
+                      onClick={handleIndicateResolved}
+                    >
+                      Problem Appears Resolved
+                    </button>
+                  ) : (
+                    <div className="alert alert-success py-2 px-3 mb-0 small" data-testid="requester-indicated-alert">
+                      ✓ You indicated this problem appears resolved.
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -115,6 +173,11 @@ export function TicketDetail({ ticketId, requesterId, onBack }: TicketDetailProp
             ))}
           </ul>
         )}
+
+        <hr className="my-4" />
+
+        {/* Read-only Actions Taken list for Requester */}
+        <ActionsTaken ticketId={ticketId} canEdit={false} />
       </div>
     </div>
   );
