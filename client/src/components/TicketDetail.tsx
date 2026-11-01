@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { getTicket, deleteAttachment, Ticket } from "../api.js";
+import { ActionsTaken } from "./ActionsTaken.js";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
 
@@ -115,6 +116,11 @@ export function TicketDetail({ ticketId, requesterId, onBack }: TicketDetailProp
             ))}
           </ul>
         )}
+
+        <hr className="my-4" />
+
+        {/* Read-only Actions Taken list for Requester */}
+        <ActionsTaken ticketId={ticketId} canEdit={false} />
       </div>
     </div>
   );
