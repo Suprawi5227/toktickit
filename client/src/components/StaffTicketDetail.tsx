@@ -299,7 +299,7 @@ export function StaffTicketDetail({ ticketId, onBack, initialTicket }: StaffTick
               <i className="bi bi-info-circle-fill me-2"></i>
               <strong>Requester Feedback:</strong> The requester indicated that this problem appears resolved.
             </div>
-            {ticket.status !== "RESOLVED" && ticket.status !== "CLOSED" && (
+            {PERMITTED_TRANSITIONS[ticket.status]?.includes("RESOLVED") && (
               <button
                 className="btn btn-sm btn-success fw-bold text-nowrap"
                 style={{ backgroundColor: "#006B3C", borderColor: "#006B3C" }}

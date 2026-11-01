@@ -49,7 +49,9 @@ export function TicketDetail({ ticketId, requesterId, onBack, initialTicket }: T
   };
 
   const handleIndicateResolved = async () => {
-    const note = window.prompt("Optional resolution note (e.g. Printer is working properly now):") ?? undefined;
+    const promptVal = window.prompt("Optional resolution note (e.g. Printer is working properly now):");
+    if (promptVal === null) return;
+    const note = promptVal.trim() ? promptVal.trim() : undefined;
     try {
       setLoading(true);
       await indicateTicketResolved(ticketId, note);
