@@ -161,7 +161,7 @@ export function ActionsTaken({
           followUpNote: followUpRequired ? followUpNote.trim() : null,
           attachmentNotes: attachmentNotes.trim() || null,
         });
-        setActions((prev) => [created, ...prev]);
+        setActions((prev) => [...prev, created]);
         onActionAdded?.(created);
       }
       closeModal();
@@ -276,7 +276,7 @@ export function ActionsTaken({
                           border: "1px solid #A3D9C9",
                         }}
                       >
-                        {act.performer?.name ?? `User #${act.performedById}`}
+                        {act.performedBy?.name ?? act.performer?.name ?? `User #${act.performedById}`}
                       </span>
                     </td>
 
@@ -384,7 +384,7 @@ export function ActionsTaken({
                         }}
                       >
                         {editingAction
-                          ? editingAction.performer?.name ?? `User #${editingAction.performedById}`
+                          ? editingAction.performedBy?.name ?? editingAction.performer?.name ?? `User #${editingAction.performedById}`
                           : user?.name ?? "Authenticated IT Staff"}
                       </span>
                     </div>
@@ -546,3 +546,4 @@ export function ActionsTaken({
     </div>
   );
 }
+

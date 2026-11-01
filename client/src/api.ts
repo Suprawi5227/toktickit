@@ -202,6 +202,12 @@ export interface ActionTaken {
   description: string;
   result: string;
   performedById: number;
+  performedBy?: {
+    id: number;
+    name: string;
+    email: string;
+    role: string;
+  };
   performer?: {
     id: number;
     name: string;
@@ -353,7 +359,7 @@ export async function updateActionTaken(
 // ---------------------------------------------------------------------------
 export async function claimTicket(ticketId: number): Promise<any> {
   const res = await fetch(`${API_URL}/api/tickets/${ticketId}/claim`, {
-    method: "POST",
+    method: "PATCH",
     headers: getAuthHeaders(),
     credentials: "include",
   });
@@ -443,7 +449,7 @@ export async function postPublicComment(ticketId: number, comment: string): Prom
     method: "POST",
     headers: getAuthHeaders(),
     credentials: "include",
-    body: JSON.stringify({ comment }),
+    body: JSON.stringify({ content: comment, comment }),
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
@@ -468,7 +474,7 @@ export async function postInternalNote(ticketId: number, note: string): Promise<
     method: "POST",
     headers: getAuthHeaders(),
     credentials: "include",
-    body: JSON.stringify({ note }),
+    body: JSON.stringify({ content: note, note }),
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
