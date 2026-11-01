@@ -225,5 +225,91 @@
 - **Author Response & Action Taken (`@Suprawi5227`)**:
   > *"ได้ติ๊กถูก `- [x]` ครบถ้วนทั้ง 5 ข้อใน PR Description ของ PR #69 และตรวจสอบความถูกต้องของ Test Suites ทั้งหมดเรียบร้อยแล้วครับ"*
 
+---
+
+## 7. Peer Review Round 7 (PR #70 & PR #71: Ticket Workflow State Machine & Role Dashboards Backend API)
+- **PR Links**:
+  - [PR #70: Ticket Workflow State Machine & Resolution Gate](https://github.com/Suprawi5227/toktickit/pull/70)
+  - [PR #71: Role Dashboards Backend API](https://github.com/Suprawi5227/toktickit/pull/71)
+- **Audit Summary (`@natthakamol1130`)**:
+  - Verified `PERMITTED_TRANSITIONS` matrix enforcement (`BR-07`), Resolution Gate blocking Requesters (`403 Forbidden`, `BR-08`), Advisory Resolution (`PATCH /api/tickets/:id/indicate-resolved`, `BR-09`), Optimistic Concurrency (`409 Conflict`, `BR-10`), and Inactive Assignee Safety (`400 Bad Request`, `BR-14`).
+  - Verified backend-aggregated Staff & Admin Dashboard (`GET /api/dashboards/staff` with `userSummary` for Admin) and Requester Dashboard (`GET /api/dashboards/requester` with strict `requesterId` isolation and zero-count safety).
+  - **Decision**: **APPROVED & MERGED** by `@natthakamol1130`.
+
+---
+
+## 8. Peer Review Round 8 (PR #72 & PR #74: Actions Taken UI on Ticket Detail)
+
+### 🔍 Feedback 25: Performer Field Name Alignment (`performedBy` vs `performer`)
+- **Peer Reviewer Comment (`@natthakamol1130`)**:
+  > *"ชื่อฟิลด์ผู้ปฏิบัติงาน (performedBy vs performer) ใน client/src/api.ts และ client/src/components/ActionsTaken.tsx: ใน Backend (actions-taken.routes.ts) ส่งข้อมูลกลับมาในชื่อฟิลด์ performedBy ({ id, name, email, role }) แต่ใน ActionsTaken.tsx เรียกใช้แค่ act.performer?.name ทำให้เวลาต่อกับ Backend จริง ชื่อพนักงานจะไม่ขึ้นแต่จะกลายเป็น User #... แทนค่ะ วิธีแก้: ใน client/src/api.ts เพิ่ม performedBy? คู่กับ performer? และใน ActionsTaken.tsx ปรับเป็น act.performedBy?.name ?? act.performer?.name ?? `User #${act.performedById}` เพื่อให้รองรับทั้งข้อมูลจาก Backend จริงและข้อมูล Mock ใน Unit Test ค่ะ"*
+- **Author Response & Action Taken (`@Suprawi5227`)**:
+  > *"แก้ไขใน `client/src/api.ts` และ `client/src/components/ActionsTaken.tsx` ให้รองรับทั้ง `performedBy` จาก Backend จริงและ `performer` จาก Unit Test Mock เรียบร้อยแล้วครับ"*
+
+### 🔍 Feedback 26: Chronological Ordering When Appending New Action Taken (`BR-15`)
+- **Peer Reviewer Comment (`@natthakamol1130`)**:
+  > *"ลำดับการเรียงรายการเมื่อสร้าง Action ใหม่ (ActionsTaken.tsx): ตาม BR-15 และ Backend (orderBy: [{ actionDateTime: 'asc' }, { id: 'asc' }]) รายการจะเรียงจากเก่าไปใหม่ แต่โค้ดใช้ setActions((prev) => [created, ...prev]); ซึ่งนำรายการใหม่ไปไว้บนสุด รบกวนเปลี่ยนเป็น setActions((prev) => [...prev, created]); เพื่อให้ลำดับตรงกับ Backend นะคะ"*
+- **Author Response & Action Taken (`@Suprawi5227`)**:
+  > *"ปรับเป็น `setActions((prev) => [...prev, created])` เพื่อให้ลำดับการแสดงผลเรียงจากเก่าไปใหม่ตรงกับ Backend และ BR-15 เรียบร้อยแล้วครับ"*
+
+### 🔍 Feedback 27: HTTP Method & Payload Alignment in `client/src/api.ts`
+- **Peer Reviewer Comment (`@natthakamol1130`)**:
+  > *"HTTP Method และ Body Payload ใน client/src/api.ts ไม่ตรงกับ server/src/routes/staff.routes.ts: ฟังก์ชัน claimTicket ใช้ method: 'POST' แต่ใน staff.routes.ts เป็น PATCH /:id/claim รบกวนแก้เป็น method: 'PATCH' และฟังก์ชัน postPublicComment / postInternalNote ส่งเป็น { content: comment, comment } และ { content: note, note } เพื่อไม่ให้ติด 400 Bad Request ค่ะ"*
+- **Author Response & Action Taken (`@Suprawi5227`)**:
+  > *"ปรับ `claimTicket` เป็น `method: 'PATCH'` และส่ง `content` ใน `postPublicComment` กับ `postInternalNote` เรียบร้อยแล้วครับ (Approved & Merged by `@natthakamol1130` in [PR #74](https://github.com/Suprawi5227/toktickit/pull/74))"*
+
+---
+
+## 9. Peer Review Round 9 (PR #75: Role Dashboards UI & Drill-down Navigation)
+
+### 🔍 Feedback 28: Admin `userSummary` Display in `StaffDashboard.tsx` (`FR-11`)
+- **Peer Reviewer Comment (`@natthakamol1130`)**:
+  > *"การแสดงผล userSummary สำหรับ Admin ใน StaffDashboard.tsx (FR-11): ฝั่ง Backend (GET /api/dashboards/staff) มีการส่ง data.userSummary (totalUsers, activeUsers, requesters, staff, admins) กลับมาเมื่อผู้ใช้เป็น ADMIN แต่ใน StaffDashboard.tsx ยังไม่ได้นำ dashboardData?.userSummary มาแสดงผล รบกวนเพิ่มส่วนแสดงผล userSummary เมื่อมีค่าส่งมาเพื่อให้ครบตาม FR-11 นะคะ"*
+- **Author Response & Action Taken (`@Suprawi5227`)**:
+  > *"เพิ่มส่วนแสดงผล **System User Summary (Admin View)** ใน `StaffDashboard.tsx` เมื่อมีข้อมูล `userSummary` ส่งกลับมาครบทั้ง 5 ค่า (`totalUsers`, `activeUsers`, `requesters`, `staff`, `admins`) พร้อมเทสต์検証ตาม FR-11 เรียบร้อยแล้วครับ"*
+
+### 🔍 Feedback 29: Wiring `StaffDashboard` & Queue Drill-down in `App.tsx` (`AC-14`)
+- **Peer Reviewer Comment (`@natthakamol1130`)**:
+  > *"การเชื่อม StaffDashboard และ Drill-down เข้ากับ client/src/App.tsx (AC-14 & Issue #62): ใน client/src/App.tsx ตอนนี้มีการ import และเรนเดอร์เฉพาะ <RequesterDashboard /> แต่ยังไม่ได้เรนเดอร์ <StaffDashboard /> สำหรับฝั่ง IT Staff / Admin และเชื่อม callback onDrillDown ไปยังหน้า StaffTicketQueue"*
+- **Author Response & Action Taken (`@Suprawi5227`)**:
+  > *"เชื่อม `<StaffDashboard />` เข้ากับ `App.tsx` สำหรับ Role `IT_STAFF` และ `ADMIN` พร้อมส่ง filter จาก `onDrillDown` ไปยัง `<StaffTicketQueue initialFilter={...} />` เรียบร้อยแล้วครับ"*
+
+### 🔍 Feedback 30: Keyboard Accessibility (`Enter` / `Space`) on Metric Cards
+- **Peer Reviewer Comment (`@natthakamol1130`)**:
+  > *"Keyboard Accessibility (Enter / Space) บนการ์ดใน StaffDashboard.tsx (ui-spec.md Section 5): การ์ดทั้ง 5 ใบใช้ <div role='button' tabIndex={0} onClick={...}> แนะนำให้เพิ่ม onKeyDown สำหรับปุ่ม Enter และ Space เพื่อให้สามารถกด Drill-down ผ่านคีย์บอร์ดได้ตาม ui-spec.md Section 5 นะคะ"*
+- **Author Response & Action Taken (`@Suprawi5227`)**:
+  > *"เพิ่ม `onKeyDown` รองรับปุ่ม `Enter` และ `Space` บนการ์ดทั้งใน `StaffDashboard.tsx` และ `RequesterDashboard.tsx` เรียบร้อยแล้วครับ (Approved & Merged by `@natthakamol1130` in [PR #75](https://github.com/Suprawi5227/toktickit/pull/75))"*
+
+---
+
+## 10. Peer Review Round 10 (PR #76: Final Hardening, Regression & E2E Testing)
+
+### 🔍 Feedback 31: Guarding `window.prompt` Cancellation in `TicketDetail.tsx`
+- **Peer Reviewer Comment (`@natthakamol1130`)**:
+  > *"TicketDetail.tsx: ตอนกดปุ่ม 'Problem Appears Resolved' ถ้ากดยกเลิก (Cancel) ใน prompt ค่าจะเป็น null แต่โค้ดยังยิง API ไปอยู่ ให้ใส่ if (promptVal === null) return; ดักไว้หน่อย"*
+- **Author Response & Action Taken (`@Suprawi5227`)**:
+  > *"เพิ่ม `if (promptVal === null) return;` ใน `handleIndicateResolved` ของ `TicketDetail.tsx` เพื่อยกเลิกการทำงานทันทีเมื่อผู้ใช้กด Cancel ใน prompt เรียบร้อยแล้วครับ"*
+
+### 🔍 Feedback 32: Guarding "Formally Resolve Ticket" Button by `PERMITTED_TRANSITIONS`
+- **Peer Reviewer Comment (`@natthakamol1130`)**:
+  > *"StaffTicketDetail.tsx: ปุ่ม 'Formally Resolve Ticket' ตรงแบนเนอร์ ให้เช็คเพิ่มเป็น PERMITTED_TRANSITIONS[ticket.status]?.includes('RESOLVED') ไม่งั้นถ้าตั๋วเป็น NEW หรือ CANCELLED พอกดแล้วหลังบ้านจะตี 400 Bad Request"*
+- **Author Response & Action Taken (`@Suprawi5227`)**:
+  > *"เปลี่ยนเงื่อนไขการแสดงปุ่ม 'Formally Resolve Ticket' ใน `StaffTicketDetail.tsx` เป็น `PERMITTED_TRANSITIONS[ticket.status]?.includes('RESOLVED')` ตาม BR-07 เรียบร้อยแล้วครับ"*
+
+### 🔍 Feedback 33: Root `test:e2e` NPM Script
+- **Peer Reviewer Comment (`@natthakamol1130`)**:
+  > *"ใน root package.json: ช่วยเพิ่ม \"scripts\": { \"test:e2e\": \"playwright test\" } ให้หน่อย จะได้รันเทสจาก root ง่ายๆ"*
+- **Author Response & Action Taken (`@Suprawi5227`)**:
+  > *"เพิ่ม `\"test:e2e\": \"playwright test\"` ใน root `package.json` เรียบร้อยแล้วครับ (Approved & Merged by `@natthakamol1130` in [PR #76](https://github.com/Suprawi5227/toktickit/pull/76))"*
+
+---
+
+## 11. Final Sprint 4 Release Sign-off
+- [x] All 14 Acceptance Criteria (`AC-01` through `AC-14`) satisfied and verified.
+- [x] All 16 Business Rules (`BR-01` through `BR-16`) strictly enforced across client and server.
+- [x] All 47 planned test cases (`UNIT-01`..`02`, `API-01`..`22`, `UI-01`..`14`, `E2E-01`..`06`, `REG-01`..`03`) passing (`48` Server tests, `25` Client tests, `6` Playwright E2E tests).
+- [x] All Feature PRs (`#66`, `#67`, `#68`, `#69`, `#70`, `#71`, `#74`, `#75`, `#76`) peer-reviewed, approved, and merged by `@natthakamol1130` into `lab4-staging`.
+- **Final Decision**: **APPROVED FOR RELEASE MERGE (`lab4-staging` -> `main`)**.
+
 
 
