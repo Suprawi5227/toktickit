@@ -5,12 +5,13 @@ import RequesterSelector from "./components/RequesterSelector.js";
 import { CreateTicketForm } from "./components/CreateTicketForm.js";
 import { MyTickets } from "./components/MyTickets.js";
 import { TicketDetail } from "./components/TicketDetail.js";
+import { RequesterDashboard } from "./components/RequesterDashboard.js";
 
 type UiState = "idle" | "loading" | "success" | "error";
 
 export default function App() {
   const [state, setState] = useState<UiState>("idle");
-  const [tab, setTab] = useState<"list" | "create">("list");
+  const [tab, setTab] = useState<"dashboard" | "list" | "create">("list");
   const [selectedTicketId, setSelectedTicketId] = useState<number | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const { requester, setRequester } = useRequester();
@@ -95,6 +96,15 @@ export default function App() {
             <ul className="nav nav-tabs mb-4">
               <li className="nav-item">
                 <button 
+                  className={`nav-link ${tab === "dashboard" && selectedTicketId === null ? "active fw-bold text-success" : "text-secondary"}`} 
+                  onClick={() => { setTab("dashboard"); setSelectedTicketId(null); }}
+                  style={{ cursor: "pointer", background: "none", border: "none" }}
+                >
+                  Dashboard
+                </button>
+              </li>
+              <li className="nav-item">
+                <button 
                   className={`nav-link ${tab === "list" && selectedTicketId === null ? "active fw-bold text-success" : "text-secondary"}`} 
                   onClick={() => { setTab("list"); setSelectedTicketId(null); }}
                   style={{ cursor: "pointer", background: "none", border: "none" }}
@@ -115,6 +125,12 @@ export default function App() {
 
             {selectedTicketId !== null ? (
               <TicketDetail ticketId={selectedTicketId} requesterId={requester.id} onBack={() => setSelectedTicketId(null)} />
+            ) : tab === "dashboard" ? (
+              <RequesterDashboard
+                onSelectTicket={(id) => setSelectedTicketId(id)}
+                onCreateTicket={() => setTab("create")}
+                onViewMyTickets={() => setTab("list")}
+              />
             ) : tab === "list" ? (
               <MyTickets requesterId={requester.id} onViewTicket={(id) => setSelectedTicketId(id)} />
             ) : (
