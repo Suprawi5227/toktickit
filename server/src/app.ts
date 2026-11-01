@@ -13,6 +13,7 @@ import { authRouter } from "./routes/auth.routes.js";
 import { staffRouter } from "./routes/staff.routes.js";
 import { adminRouter } from "./routes/admin.routes.js";
 import { actionsTakenRouter } from "./routes/actions-taken.routes.js";
+import { dashboardRouter } from "./routes/dashboard.routes.js";
 // getPrisma() is your lazy database handle. Call it INSIDE a route when you
 // need the DB (Issue 4). It is intentionally unused until then.
 void getPrisma;
@@ -330,6 +331,7 @@ app.use("/api/auth", authRouter);
 app.use("/api/tickets/:id/actions-taken", actionsTakenRouter);
 app.use("/api/tickets", staffRouter);
 app.use("/api/admin", adminRouter);
+app.use("/api/dashboards", dashboardRouter);
 
 // ---------------------------------------------------------------------------
 // Lab 2 - Issue 8: Ticket Detail & Attachment Deletion
