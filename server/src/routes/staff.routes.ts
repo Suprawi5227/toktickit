@@ -5,15 +5,15 @@ import { authMiddleware, requireRole, AuthenticatedRequest } from "../middleware
 
 export const staffRouter = Router();
 
-// Permitted Ticket Status Transitions Matrix (BR-08)
-const PERMITTED_TRANSITIONS: Record<TicketStatus, TicketStatus[]> = {
+// Permitted Ticket Status Transitions Matrix (BR-07)
+export const PERMITTED_TRANSITIONS: Record<TicketStatus, TicketStatus[]> = {
   NEW: [TicketStatus.OPEN, TicketStatus.IN_PROGRESS, TicketStatus.CANCELLED],
   OPEN: [TicketStatus.IN_PROGRESS, TicketStatus.WAITING_FOR_REQUESTER, TicketStatus.RESOLVED, TicketStatus.CANCELLED],
   IN_PROGRESS: [TicketStatus.WAITING_FOR_REQUESTER, TicketStatus.RESOLVED, TicketStatus.CANCELLED],
   WAITING_FOR_REQUESTER: [TicketStatus.IN_PROGRESS, TicketStatus.RESOLVED, TicketStatus.CANCELLED],
   RESOLVED: [TicketStatus.CLOSED, TicketStatus.REOPENED],
   CLOSED: [TicketStatus.REOPENED],
-  REOPENED: [TicketStatus.IN_PROGRESS, TicketStatus.RESOLVED, TicketStatus.CANCELLED],
+  REOPENED: [TicketStatus.IN_PROGRESS, TicketStatus.WAITING_FOR_REQUESTER, TicketStatus.RESOLVED, TicketStatus.CANCELLED],
   CANCELLED: [],
 };
 
@@ -175,10 +175,14 @@ staffRouter.patch("/:id/reassign", authMiddleware, requireRole(Role.IT_STAFF, Ro
 });
 
 // PATCH /api/tickets/:id/status
-staffRouter.patch("/:id/status", authMiddleware, requireRole(Role.IT_STAFF, Role.ADMIN), async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+staffRouter.patch("/:id/status", authMiddleware, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
   try {
     const ticketId = parseInt(req.params.id, 10);
-    const { status } = req.body as { status: TicketStatus };
+    const { status, lastUpdatedAt, expectedUpdatedAt } = req.body as {
+      status: TicketStatus;
+      lastUpdatedAt?: string;
+      expectedUpdatedAt?: string;
+    };
 
     if (isNaN(ticketId)) {
       res.status(400).json({ error: "Invalid ticket ID" });
@@ -194,6 +198,35 @@ staffRouter.patch("/:id/status", authMiddleware, requireRole(Role.IT_STAFF, Role
     if (!ticket) {
       res.status(404).json({ error: "Ticket not found" });
       return;
+    }
+
+    // RBAC & Resolution Gate (BR-08): Requesters cannot resolve or close tickets
+    if (req.user!.role === Role.REQUESTER) {
+      if (ticket.requesterId !== req.user!.id) {
+        res.status(403).json({ error: "Forbidden: You do not own this ticket" });
+        return;
+      }
+
+      // Requesters may only cancel their own ticket if still in NEW status
+      if (ticket.status !== TicketStatus.NEW || status !== TicketStatus.CANCELLED) {
+        res.status(403).json({
+          error: "Forbidden: Requesters can only cancel tickets in NEW status and cannot transition status to RESOLVED or CLOSED (BR-08 Resolution Gate).",
+        });
+        return;
+      }
+    }
+
+    // Optimistic Concurrency Control (BR-10, AC-10)
+    const clientTimestamp = lastUpdatedAt || expectedUpdatedAt;
+    if (clientTimestamp) {
+      const clientTime = new Date(clientTimestamp).getTime();
+      const serverTime = new Date(ticket.updatedAt).getTime();
+      if (clientTime !== serverTime) {
+        res.status(409).json({
+          error: "Conflict: Ticket has been modified by another user. Please refresh and retry.",
+        });
+        return;
+      }
     }
 
     const allowedNextStatuses = PERMITTED_TRANSITIONS[ticket.status] || [];
@@ -259,9 +292,15 @@ staffRouter.patch("/:id/indicate-resolved", authMiddleware, async (req: Authenti
       return;
     }
 
-    if (req.user!.role === Role.REQUESTER && ticket.requesterId !== req.user!.id) {
+    if (ticket.requesterId !== req.user!.id) {
       res.status(403).json({ error: "Forbidden: You do not own this ticket" });
       return;
+    }
+
+    const { note } = req.body || {};
+    let commentContent = "[System] Requester indicated that the reported problem appears resolved.";
+    if (note && typeof note === "string" && note.trim()) {
+      commentContent += ` Note: ${note.trim()}`;
     }
 
     const updated = await getPrisma().ticket.update({
@@ -274,7 +313,7 @@ staffRouter.patch("/:id/indicate-resolved", authMiddleware, async (req: Authenti
       data: {
         ticketId,
         authorId: req.user!.id,
-        content: "[System] Requester indicated that the reported problem appears resolved.",
+        content: commentContent,
       },
     });
 
