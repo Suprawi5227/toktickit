@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { ActionsTaken } from "./ActionsTaken.js";
 import {
   Ticket,
   getTicket,
@@ -296,6 +297,9 @@ export function StaffTicketDetail({ ticketId, onBack }: StaffTicketDetailProps) 
           <h6 className="fw-bold text-secondary mb-2">Description</h6>
           <div className="p-3 bg-white rounded border text-wrap">{ticket.description}</div>
         </div>
+
+        {/* Actions Taken Section */}
+        <ActionsTaken ticketId={ticketId} />
 
         {/* Tabs for Comments, Internal Notes, Attachments */}
         <ul className="nav nav-tabs mb-3">
