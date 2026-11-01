@@ -4,18 +4,29 @@ import { useAuth } from "../contexts/AuthContext.js";
 
 interface StaffTicketQueueProps {
   onSelectTicket: (ticketId: number) => void;
+  initialStatus?: string;
+  initialOwner?: string;
 }
 
-export function StaffTicketQueue({ onSelectTicket }: StaffTicketQueueProps) {
+export function StaffTicketQueue({
+  onSelectTicket,
+  initialStatus,
+  initialOwner,
+}: StaffTicketQueueProps) {
   const { user } = useAuth();
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [meta, setMeta] = useState({ page: 1, totalPages: 1, totalItems: 0, limit: 10 });
   const [search, setSearch] = useState("");
-  const [status, setStatus] = useState("ALL");
+  const [status, setStatus] = useState(initialStatus ?? "ALL");
   const [itPriority, setItPriority] = useState("ALL");
-  const [ownerFilter, setOwnerFilter] = useState("all");
+  const [ownerFilter, setOwnerFilter] = useState(initialOwner ?? "all");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (initialStatus !== undefined) setStatus(initialStatus);
+    if (initialOwner !== undefined) setOwnerFilter(initialOwner);
+  }, [initialStatus, initialOwner]);
 
   async function loadQueue(page: number = 1) {
     setLoading(true);

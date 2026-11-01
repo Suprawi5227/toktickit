@@ -63,6 +63,14 @@ export function StaffDashboard({
   };
 
   const recentTickets = dashboardData?.recentTickets ?? [];
+  const userSummary = dashboardData?.userSummary ?? null;
+
+  const handleKeyDown = (e: React.KeyboardEvent, action: () => void) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      action();
+    }
+  };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -145,6 +153,7 @@ export function StaffDashboard({
                   transition: "transform 0.15s ease",
                 }}
                 onClick={() => onDrillDown?.({ unassigned: true })}
+                onKeyDown={(e) => handleKeyDown(e, () => onDrillDown?.({ unassigned: true }))}
                 role="button"
                 tabIndex={0}
                 aria-label="Filter queue by Unassigned"
@@ -174,6 +183,7 @@ export function StaffDashboard({
                   borderLeft: "4px solid #6F42C1",
                 }}
                 onClick={() => onDrillDown?.({ status: "OPEN" })}
+                onKeyDown={(e) => handleKeyDown(e, () => onDrillDown?.({ status: "OPEN" }))}
                 role="button"
                 tabIndex={0}
                 aria-label="Filter queue by Open"
@@ -203,6 +213,7 @@ export function StaffDashboard({
                   borderLeft: "4px solid #FD7E14",
                 }}
                 onClick={() => onDrillDown?.({ status: "IN_PROGRESS" })}
+                onKeyDown={(e) => handleKeyDown(e, () => onDrillDown?.({ status: "IN_PROGRESS" }))}
                 role="button"
                 tabIndex={0}
                 aria-label="Filter queue by In Progress"
@@ -232,6 +243,7 @@ export function StaffDashboard({
                   borderLeft: "4px solid #FFC107",
                 }}
                 onClick={() => onDrillDown?.({ status: "WAITING_FOR_REQUESTER" })}
+                onKeyDown={(e) => handleKeyDown(e, () => onDrillDown?.({ status: "WAITING_FOR_REQUESTER" }))}
                 role="button"
                 tabIndex={0}
                 aria-label="Filter queue by Waiting for Requester"
@@ -261,6 +273,7 @@ export function StaffDashboard({
                   borderLeft: "4px solid #006B3C",
                 }}
                 onClick={() => onDrillDown?.({ assignment: "ME" })}
+                onKeyDown={(e) => handleKeyDown(e, () => onDrillDown?.({ assignment: "ME" }))}
                 role="button"
                 tabIndex={0}
                 aria-label="Filter queue by Assigned to Me"
@@ -279,6 +292,51 @@ export function StaffDashboard({
               </div>
             </div>
           </div>
+
+          {/* User Account Summary (FR-11: Admin Only) */}
+          {userSummary && (
+            <div
+              className="card border-0 shadow-sm mb-4"
+              style={{ borderRadius: "8px" }}
+              data-testid="user-summary-card"
+            >
+              <div
+                className="card-header py-3 bg-white d-flex justify-content-between align-items-center"
+                style={{ borderBottom: "1px solid #E0E6E3" }}
+              >
+                <h5 className="mb-0 fw-bold" style={{ color: "#1A3326" }}>
+                  User Account Summary
+                </h5>
+                <span className="badge" style={{ backgroundColor: "#006B3C", color: "#FFFFFF" }}>
+                  Admin View
+                </span>
+              </div>
+              <div className="card-body p-3">
+                <div className="row g-3 text-center">
+                  <div className="col">
+                    <div className="text-muted small">Total Users</div>
+                    <div className="h4 fw-bold mb-0 text-dark">{userSummary.totalUsers}</div>
+                  </div>
+                  <div className="col">
+                    <div className="text-muted small">Active</div>
+                    <div className="h4 fw-bold mb-0 text-success">{userSummary.activeUsers}</div>
+                  </div>
+                  <div className="col">
+                    <div className="text-muted small">Requesters</div>
+                    <div className="h4 fw-bold mb-0 text-primary">{userSummary.requesters}</div>
+                  </div>
+                  <div className="col">
+                    <div className="text-muted small">IT Staff</div>
+                    <div className="h4 fw-bold mb-0 text-info">{userSummary.staff}</div>
+                  </div>
+                  <div className="col">
+                    <div className="text-muted small">Admins</div>
+                    <div className="h4 fw-bold mb-0 text-warning">{userSummary.admins}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Main 2-Column Section: Recent Tickets & Quick Actions */}
           <div className="row g-4">

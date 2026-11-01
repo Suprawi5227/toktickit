@@ -74,6 +74,10 @@ describe("Lab 4 Staff Dashboard UI Component", () => {
     fireEvent.click(unassignedCard);
     expect(handleDrillDown).toHaveBeenCalledWith({ unassigned: true });
 
+    // Keyboard navigation (Enter / Space per ui-spec.md Section 5)
+    fireEvent.keyDown(unassignedCard, { key: "Enter", code: "Enter" });
+    expect(handleDrillDown).toHaveBeenCalledWith({ unassigned: true });
+
     // Click In Progress card
     const inProgressCard = screen.getByLabelText(/Filter queue by In Progress/i);
     fireEvent.click(inProgressCard);
@@ -82,6 +86,10 @@ describe("Lab 4 Staff Dashboard UI Component", () => {
     // Click Assigned to Me card
     const assignedCard = screen.getByLabelText(/Filter queue by Assigned to Me/i);
     fireEvent.click(assignedCard);
+    expect(handleDrillDown).toHaveBeenCalledWith({ assignment: "ME" });
+
+    // Keyboard navigation with Space
+    fireEvent.keyDown(assignedCard, { key: " ", code: "Space" });
     expect(handleDrillDown).toHaveBeenCalledWith({ assignment: "ME" });
   });
 
@@ -114,5 +122,27 @@ describe("Lab 4 Staff Dashboard UI Component", () => {
     // Click Create Ticket button
     fireEvent.click(screen.getByRole("button", { name: /Create Ticket/i }));
     expect(handleCreate).toHaveBeenCalled();
+  });
+
+  it("FR-11: Renders User Account Summary panel when userSummary data is provided for Admin", () => {
+    const adminData = {
+      ...sampleData,
+      userSummary: {
+        totalUsers: 15,
+        activeUsers: 14,
+        requesters: 10,
+        staff: 4,
+        admins: 1,
+      },
+    };
+
+    render(<StaffDashboard initialData={adminData} />);
+
+    expect(screen.getByTestId("user-summary-card")).toBeInTheDocument();
+    expect(screen.getByText("User Account Summary")).toBeInTheDocument();
+    expect(screen.getByText("15")).toBeInTheDocument();
+    expect(screen.getByText("14")).toBeInTheDocument();
+    expect(screen.getByText("10")).toBeInTheDocument();
+    expect(screen.getByText("Admin View")).toBeInTheDocument();
   });
 });
